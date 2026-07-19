@@ -12,6 +12,12 @@ struct SleepAidApp: App {
         }
         .windowResizability(.contentMinSize)
 
+        Window("设置", id: "settings") {
+            SettingsWindowView(controller: controller)
+                .frame(minWidth: 560, minHeight: 560)
+        }
+        .windowResizability(.contentMinSize)
+
         MenuBarExtra("白噪音", systemImage: controller.menuBarSymbol) {
             MenuBarView(controller: controller)
         }

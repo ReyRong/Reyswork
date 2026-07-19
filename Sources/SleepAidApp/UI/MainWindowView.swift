@@ -3,6 +3,7 @@ import SwiftUI
 struct MainWindowView: View {
     @ObservedObject var controller: SleepAidController
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.openWindow) private var openWindow
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     private let soundscapeColumns = [
@@ -55,7 +56,13 @@ struct MainWindowView: View {
 
     private var nowPlayingPanel: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionHeader("当前播放")
+            HStack {
+                sectionHeader("当前播放")
+                Spacer()
+                Button("设置...", systemImage: "gearshape") {
+                    openWindow(id: "settings")
+                }
+            }
 
             HStack(alignment: .center, spacing: 20) {
                 ZStack {
@@ -261,6 +268,10 @@ struct MainWindowView: View {
 
     private var footerBar: some View {
         HStack(spacing: 14) {
+            Button("设置...", systemImage: "gearshape") {
+                openWindow(id: "settings")
+            }
+
             Toggle(
                 isOn: Binding(
                     get: { controller.loginItemService.isEnabled },

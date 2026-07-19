@@ -179,6 +179,16 @@ struct MenuBarView: View {
             .buttonStyle(.bordered)
 
             Button {
+                openWindow(id: "settings")
+                NSApplication.shared.activate(ignoringOtherApps: true)
+            } label: {
+                Image(systemName: "gearshape")
+                    .frame(width: 28)
+            }
+            .help("设置")
+            .buttonStyle(.bordered)
+
+            Button {
                 NSApplication.shared.terminate(nil)
             } label: {
                 Image(systemName: "power")
