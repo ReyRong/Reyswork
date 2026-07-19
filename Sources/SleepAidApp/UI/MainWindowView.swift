@@ -14,14 +14,80 @@ struct MainWindowView: View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             sceneSidebar
         } detail: {
-            VStack(alignment: .leading, spacing: 12) {
-                nowPlayingPanel
-                soundscapePanel
-                libraryPanel
-                footerBar
+            Group {
+                if controller.playbackState.isActive {
+                    playbackSessionView
+                } else {
+                    controlConsole
+                }
             }
-            .padding(18)
             .frame(maxWidth: 1020, maxHeight: .infinity, alignment: .topLeading)
+            .background(AppTheme.windowBackground)
+        }
+    }
+
+    private var controlConsole: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            nowPlayingPanel
+            soundscapePanel
+            libraryPanel
+            footerBar
+        }
+        .padding(18)
+    }
+
+    private var playbackSessionView: some View {
+        TimelineView(.periodic(from: Date(), by: 1)) { context in
+            let clockText = Self.sessionClockFormatter.string(from: context.date)
+            let presentation = PlaybackSessionPresentation(
+                selectedMinutes: controller.selectedMinutes,
+                remainingText: controller.remainingText,
+                currentTimeText: clockText
+            )
+
+            ZStack(alignment: .topTrailing) {
+                VStack(spacing: 24) {
+                    Spacer(minLength: 20)
+
+                    sessionIcon
+
+                    VStack(spacing: 8) {
+                        Text(controller.selectedScene.displayName)
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        Text(controller.selectedSoundscape.displayName)
+                            .font(.system(size: 28, weight: .semibold))
+                    }
+
+                    Text(presentation.centralText)
+                        .font(.system(size: presentation.isUnlimited ? 86 : 104, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .minimumScaleFactor(0.72)
+                        .lineLimit(1)
+
+                    Text(presentation.isUnlimited ? "不限时" : "倒计时")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+
+                    sessionControls
+
+                    Spacer(minLength: 24)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(28)
+
+                if presentation.showsCornerClock {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("当前时间")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(clockText)
+                            .font(.system(size: 30, weight: .semibold, design: .rounded))
+                            .monospacedDigit()
+                    }
+                    .padding(20)
+                }
+            }
             .background(AppTheme.windowBackground)
         }
     }
@@ -89,6 +155,8 @@ struct MainWindowView: View {
                             }
                         }
                         .buttonStyle(.borderedProminent)
+                        .keyboardShortcut(.return, modifiers: [])
+                        .accessibilityLabel(primaryPlaybackTitle)
 
                         Button {
                             if controller.playbackState == .paused {
@@ -102,6 +170,7 @@ struct MainWindowView: View {
                         }
                         .help(pauseResumeTitle)
                         .buttonStyle(.bordered)
+                        .accessibilityLabel(pauseResumeTitle)
                         .disabled(!controller.playbackState.isActive)
 
                         Button {
@@ -300,6 +369,41 @@ struct MainWindowView: View {
         .padding(.horizontal, 2)
     }
 
+    private var sessionIcon: some View {
+        ZStack {
+            Circle()
+                .fill(AppTheme.selectedBackground(for: colorScheme))
+            Image(systemName: controller.selectedSoundscape.systemImage)
+                .font(.system(size: 52, weight: .semibold))
+                .foregroundStyle(.tint)
+        }
+        .frame(width: 132, height: 132)
+    }
+
+    private var sessionControls: some View {
+        HStack(spacing: 12) {
+            Button {
+                if controller.playbackState == .paused {
+                    controller.resumeSession()
+                } else {
+                    controller.pauseSession()
+                }
+            } label: {
+                Label(pauseResumeTitle, systemImage: pauseResumeImage)
+                    .frame(width: 92)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityLabel(pauseResumeTitle)
+
+            Button("停止", systemImage: "stop.fill") {
+                controller.stopSession(fadeOut: false)
+            }
+            .buttonStyle(.borderedProminent)
+            .keyboardShortcut(.escape, modifiers: [])
+            .accessibilityLabel("停止")
+        }
+    }
+
     private func playbackMetric(_ title: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
@@ -364,6 +468,12 @@ struct MainWindowView: View {
     private var pauseResumeImage: String {
         controller.playbackState == .paused ? "play.fill" : "pause.fill"
     }
+
+    private static let sessionClockFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter
+    }()
 }
 
 private struct SoundscapeTileButtonStyle: ButtonStyle {

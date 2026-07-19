@@ -11,6 +11,9 @@ struct SleepAidApp: App {
                 .hideInsteadOfCloseWindow()
         }
         .windowResizability(.contentMinSize)
+        .commands {
+            playbackCommands
+        }
 
         Window("设置", id: "settings") {
             SettingsWindowView(controller: controller)
@@ -22,5 +25,32 @@ struct SleepAidApp: App {
             MenuBarView(controller: controller)
         }
         .menuBarExtraStyle(.window)
+    }
+
+    @CommandsBuilder
+    private var playbackCommands: some Commands {
+        CommandMenu("播放") {
+            Button("开始") {
+                controller.startSelectedSession()
+            }
+            .keyboardShortcut(.return, modifiers: [.command])
+            .disabled(controller.playbackState.isActive)
+
+            Button(controller.playbackState == .paused ? "继续" : "暂停") {
+                if controller.playbackState == .paused {
+                    controller.resumeSession()
+                } else {
+                    controller.pauseSession()
+                }
+            }
+            .keyboardShortcut("p", modifiers: [.command])
+            .disabled(!controller.playbackState.isActive)
+
+            Button("停止") {
+                controller.stopSession(fadeOut: false)
+            }
+            .keyboardShortcut(".", modifiers: [.command])
+            .disabled(!controller.playbackState.isActive)
+        }
     }
 }
