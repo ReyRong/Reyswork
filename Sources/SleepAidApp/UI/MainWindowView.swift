@@ -7,7 +7,7 @@ struct MainWindowView: View {
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     private let soundscapeColumns = [
-        GridItem(.adaptive(minimum: 150), spacing: 12)
+        GridItem(.adaptive(minimum: 132), spacing: 10)
     ]
 
     var body: some View {
@@ -21,19 +21,19 @@ struct MainWindowView: View {
                     controlConsole
                 }
             }
-            .frame(maxWidth: 1020, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: 900, maxHeight: .infinity, alignment: .topLeading)
             .background(AppTheme.windowBackground)
         }
     }
 
     private var controlConsole: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             nowPlayingPanel
             soundscapePanel
             libraryPanel
             footerBar
         }
-        .padding(18)
+        .padding(14)
     }
 
     private var playbackSessionView: some View {
@@ -123,30 +123,25 @@ struct MainWindowView: View {
             .tag(scene)
         }
         .navigationTitle("白噪音")
+        .navigationSplitViewColumnWidth(min: 160, ideal: 180, max: 210)
     }
 
     private var nowPlayingPanel: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                sectionHeader("当前播放")
-                Spacer()
-                Button("设置...", systemImage: "gearshape") {
-                    openWindow(id: "settings")
-                }
-            }
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader("当前播放")
 
-            HStack(alignment: .center, spacing: 16) {
+            HStack(alignment: .center, spacing: 12) {
                 ZStack {
                     Circle()
                         .fill(AppTheme.selectedBackground(for: colorScheme))
                     Image(systemName: controller.selectedSoundscape.systemImage)
-                        .font(.system(size: 34, weight: .semibold))
+                        .font(.system(size: 30, weight: .semibold))
                         .foregroundStyle(.tint)
                 }
-                .frame(width: 84, height: 84)
+                .frame(width: 72, height: 72)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack(alignment: .top, spacing: 20) {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .top, spacing: 14) {
                         playbackMetric("当前场景", controller.selectedScene.displayName)
                         playbackMetric("当前音景", controller.selectedSoundscape.displayName)
                         playbackMetric("状态", playbackStatusText)
@@ -190,7 +185,7 @@ struct MainWindowView: View {
                         .buttonStyle(.bordered)
                         .disabled(!controller.playbackState.isActive)
 
-                        Spacer(minLength: 12)
+                        Spacer(minLength: 8)
 
                         Image(systemName: "speaker.wave.2")
                             .foregroundStyle(.secondary)
@@ -202,7 +197,7 @@ struct MainWindowView: View {
                             ),
                             in: 0...1
                         )
-                        .frame(maxWidth: 320)
+                        .frame(maxWidth: 260)
 
                         Text("\(Int(controller.volume * 100))%")
                             .font(.callout.monospacedDigit())
@@ -222,7 +217,7 @@ struct MainWindowView: View {
     }
 
     private var soundscapePanel: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 sectionHeader("当前场景音景")
                 Spacer()
@@ -231,20 +226,20 @@ struct MainWindowView: View {
                     .foregroundStyle(.secondary)
             }
 
-            LazyVGrid(columns: soundscapeColumns, spacing: 12) {
+            LazyVGrid(columns: soundscapeColumns, spacing: 10) {
                 ForEach(controller.availableSoundscapes) { soundscape in
                     Button {
                         controller.chooseSoundscape(soundscape)
                     } label: {
-                        VStack(spacing: 10) {
+                        VStack(spacing: 8) {
                             Image(systemName: soundscape.systemImage)
-                                .font(.system(size: 26, weight: .medium))
+                                .font(.system(size: 23, weight: .medium))
                             Text(soundscape.displayName)
                                 .font(.headline)
                                 .lineLimit(1)
                         }
-                        .frame(maxWidth: .infinity, minHeight: 72)
-                        .padding(10)
+                        .frame(maxWidth: .infinity, minHeight: 62)
+                        .padding(8)
                     }
                     .buttonStyle(SoundscapeTileButtonStyle(isSelected: controller.selectedSoundscape == soundscape, colorScheme: colorScheme))
                 }
@@ -256,7 +251,7 @@ struct MainWindowView: View {
     }
 
     private var durationControl: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("时长")
                     .font(.headline)
@@ -286,7 +281,7 @@ struct MainWindowView: View {
     }
 
     private var libraryPanel: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
                 sectionHeader("媒体库")
                 Spacer()
@@ -295,7 +290,7 @@ struct MainWindowView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 0) {
+            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 0) {
                 GridRow {
                     Text("音景名称")
                         .foregroundStyle(.secondary)
@@ -322,7 +317,7 @@ struct MainWindowView: View {
                         sceneAssignmentToggle(for: soundscape, scene: .focus)
                             .frame(maxWidth: .infinity)
                     }
-                    .padding(.vertical, 3)
+                    .padding(.vertical, 2)
 
                     if soundscape != Soundscape.allCases.last {
                         Divider()
@@ -331,7 +326,7 @@ struct MainWindowView: View {
                 }
             }
             .font(.callout)
-            .padding(8)
+            .padding(6)
             .background(AppTheme.panelBackground, in: RoundedRectangle(cornerRadius: 8))
             .overlay {
                 RoundedRectangle(cornerRadius: 8)
@@ -342,7 +337,7 @@ struct MainWindowView: View {
     }
 
     private var footerBar: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 10) {
             Button("设置...", systemImage: "gearshape") {
                 openWindow(id: "settings")
             }
