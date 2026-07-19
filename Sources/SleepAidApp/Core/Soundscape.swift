@@ -178,11 +178,12 @@ enum PlaybackState: Equatable {
     case idle
     case preparing
     case playing
+    case paused
     case error(String)
 
     var isActive: Bool {
         switch self {
-        case .preparing, .playing:
+        case .preparing, .playing, .paused:
             return true
         case .idle, .error:
             return false

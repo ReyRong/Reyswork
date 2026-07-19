@@ -31,6 +31,15 @@ struct MenuBarView: View {
                 }
             }
 
+            Button(pauseResumeTitle, systemImage: pauseResumeImage) {
+                if controller.playbackState == .paused {
+                    controller.resumeSession()
+                } else {
+                    controller.pauseSession()
+                }
+            }
+            .disabled(!controller.playbackState.isActive)
+
             ForEach(NoiseScene.allCases) { scene in
                 Button("开始\(scene.displayName)", systemImage: scene.systemImage) {
                     controller.chooseScene(scene)
@@ -66,6 +75,8 @@ struct MenuBarView: View {
                 Text("准备")
             case .playing:
                 Text("播放中")
+            case .paused:
+                Text("暂停")
             case .error:
                 Text("需要音频")
             }
@@ -76,7 +87,7 @@ struct MenuBarView: View {
 
     private var playbackButtonTitle: String {
         switch controller.playbackState {
-        case .playing:
+        case .playing, .paused:
             return "停止"
         case .idle, .preparing, .error:
             return "开始"
@@ -85,10 +96,18 @@ struct MenuBarView: View {
 
     private var playbackButtonImage: String {
         switch controller.playbackState {
-        case .playing:
+        case .playing, .paused:
             return "stop.fill"
         case .idle, .preparing, .error:
             return "moon.zzz.fill"
         }
+    }
+
+    private var pauseResumeTitle: String {
+        controller.playbackState == .paused ? "继续" : "暂停"
+    }
+
+    private var pauseResumeImage: String {
+        controller.playbackState == .paused ? "play.fill" : "pause.fill"
     }
 }

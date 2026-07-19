@@ -49,8 +49,13 @@ struct AppSettingsStore {
 private extension AppSettings {
     func validated() -> AppSettings {
         var next = self
-        next.selectedMinutes = min(max(selectedMinutes, 1), 480)
-        next.customMinutes = min(max(customMinutes, 1), 480)
+        if selectedScene == .focus {
+            next.selectedMinutes = min(max(selectedMinutes, 0), 480)
+            next.customMinutes = min(max(customMinutes, 0), 480)
+        } else {
+            next.selectedMinutes = min(max(selectedMinutes, 1), 480)
+            next.customMinutes = min(max(customMinutes, 1), 480)
+        }
         next.volume = min(max(volume, 0), 1)
 
         if next.sceneAssignments.soundscapes(for: next.selectedScene).isEmpty {

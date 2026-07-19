@@ -61,6 +61,25 @@ final class AudioPlayerService: NSObject, ObservableObject {
         }
     }
 
+    func pause() {
+        guard let player, player.isPlaying else {
+            return
+        }
+        fadeTimer?.invalidate()
+        player.pause()
+        state = .paused
+    }
+
+    func resume() {
+        guard let player else {
+            return
+        }
+        fadeTimer?.invalidate()
+        player.play()
+        state = .playing
+        fade(to: volume, duration: 0.8)
+    }
+
     func stop(fadeOut: Bool = true, fadeOutDuration: TimeInterval = 8) {
         guard player != nil else {
             state = .idle

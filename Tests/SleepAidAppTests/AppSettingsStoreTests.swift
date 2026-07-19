@@ -38,4 +38,21 @@ final class AppSettingsStoreTests: XCTestCase {
 
         XCTAssertEqual(store.load(), .defaults)
     }
+
+    func testFocusSettingsAllowUnlimitedDuration() throws {
+        let suiteName = "AppSettingsStoreTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let store = AppSettingsStore(userDefaults: defaults)
+        var settings = AppSettings.defaults
+        settings.selectedScene = .focus
+        settings.selectedSoundscape = .library
+        settings.selectedMinutes = 0
+        settings.customMinutes = 0
+
+        store.save(settings)
+
+        XCTAssertEqual(store.load().selectedMinutes, 0)
+        XCTAssertEqual(store.load().customMinutes, 0)
+    }
 }

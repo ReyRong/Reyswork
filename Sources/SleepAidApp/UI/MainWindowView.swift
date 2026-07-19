@@ -96,6 +96,9 @@ struct MainWindowView: View {
             sectionHeader("时长")
 
             Picker("时长", selection: $controller.selectedMinutes) {
+                if controller.selectedScene == .focus {
+                    Text("不限时").tag(0)
+                }
                 ForEach(SleepTimer.presetMinutes, id: \.self) { minutes in
                     Text("\(minutes) 分钟").tag(minutes)
                 }
@@ -104,12 +107,26 @@ struct MainWindowView: View {
             .labelsHidden()
 
             HStack {
+                if controller.selectedScene == .focus {
+                    Toggle(
+                        "不限时",
+                        isOn: Binding(
+                            get: { controller.selectedMinutes == 0 },
+                            set: { controller.setUnlimitedFocusEnabled($0) }
+                        )
+                    )
+                    .toggleStyle(.checkbox)
+                }
+
                 Stepper(value: $controller.customMinutes, in: 1...480, step: 5) {
                     Text("自定义 \(controller.customMinutes) 分钟")
                 }
+                .disabled(controller.selectedScene == .focus && controller.selectedMinutes == 0)
+
                 Button("应用", systemImage: "checkmark.circle") {
                     controller.startCustomSession()
                 }
+                .disabled(controller.selectedScene == .focus && controller.selectedMinutes == 0)
             }
 
             HStack {
@@ -134,6 +151,15 @@ struct MainWindowView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+
+                Button(pauseResumeTitle, systemImage: pauseResumeImage) {
+                    if controller.playbackState == .paused {
+                        controller.resumeSession()
+                    } else {
+                        controller.pauseSession()
+                    }
+                }
+                .disabled(!controller.playbackState.isActive)
             }
 
             HStack {
@@ -244,5 +270,13 @@ struct MainWindowView: View {
 
     private var primaryPlaybackImage: String {
         controller.playbackState.isActive ? "stop.fill" : controller.selectedScene.systemImage
+    }
+
+    private var pauseResumeTitle: String {
+        controller.playbackState == .paused ? "继续" : "暂停"
+    }
+
+    private var pauseResumeImage: String {
+        controller.playbackState == .paused ? "play.fill" : "pause.fill"
     }
 }

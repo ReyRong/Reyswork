@@ -57,7 +57,10 @@ final class SleepAidController: ObservableObject {
     }
 
     var remainingText: String {
-        sleepTimer.isRunning ? sleepTimer.formattedRemaining() : "--:--"
+        if selectedScene == .focus, selectedMinutes == 0, playbackState.isActive {
+            return "不限时"
+        }
+        return sleepTimer.isRunning ? sleepTimer.formattedRemaining() : "--:--"
     }
 
     var availableSoundscapes: [Soundscape] {
@@ -68,6 +71,8 @@ final class SleepAidController: ObservableObject {
         switch playbackState {
         case .playing:
             return selectedScene.systemImage
+        case .paused:
+            return "pause.circle"
         case .error:
             return "exclamationmark.triangle"
         case .idle, .preparing:
@@ -117,6 +122,30 @@ final class SleepAidController: ObservableObject {
         audioPlayer.stop(fadeOut: fadeOut)
     }
 
+    func pauseSession() {
+        audioPlayer.pause()
+        sleepTimer.pause()
+    }
+
+    func resumeSession() {
+        audioPlayer.resume()
+        sleepTimer.resume()
+    }
+
+    func setUnlimitedFocusEnabled(_ enabled: Bool) {
+        guard selectedScene == .focus else {
+            return
+        }
+
+        if enabled {
+            selectedMinutes = 0
+            customMinutes = 0
+        } else {
+            selectedMinutes = NoiseScene.focus.defaultMinutes
+            customMinutes = NoiseScene.focus.defaultMinutes
+        }
+    }
+
     func activateSleepPresetFromFocus() {
         selectedScene = .sleep
         focusIntegration.activateSleepPreset()
@@ -141,8 +170,12 @@ final class SleepAidController: ObservableObject {
             return
         }
 
-        sleepTimer.start(duration: TimeInterval(minutes * 60)) { [weak self] in
-            self?.audioPlayer.stop(fadeOut: true)
+        if minutes > 0 {
+            sleepTimer.start(duration: TimeInterval(minutes * 60)) { [weak self] in
+                self?.audioPlayer.stop(fadeOut: true)
+            }
+        } else {
+            sleepTimer.cancel()
         }
     }
 

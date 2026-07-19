@@ -27,6 +27,27 @@ final class SleepTimerTests: XCTestCase {
         XCTAssertEqual(timer.remainingSeconds, 0, accuracy: 0.01)
     }
 
+    func testPauseAndResumePreservesRemainingTime() async {
+        let timer = SleepTimer()
+
+        timer.start(duration: 20) {}
+        try? await Task.sleep(nanoseconds: 200_000_000)
+        timer.pause()
+        let pausedRemaining = timer.remainingSeconds
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        XCTAssertFalse(timer.isRunning)
+        XCTAssertTrue(timer.isPaused)
+        XCTAssertEqual(timer.remainingSeconds, pausedRemaining, accuracy: 0.05)
+
+        timer.resume()
+
+        XCTAssertTrue(timer.isRunning)
+        XCTAssertFalse(timer.isPaused)
+
+        timer.cancel()
+    }
+
     func testCompletionFiresAndStopsTimer() async {
         let timer = SleepTimer()
         let expectation = expectation(description: "timer completes")
