@@ -46,35 +46,42 @@ struct MainWindowView: View {
             )
 
             ZStack(alignment: .topTrailing) {
-                VStack(spacing: 24) {
-                    Spacer(minLength: 20)
+                VStack(spacing: 16) {
+                    Spacer(minLength: 8)
 
                     sessionIcon
 
-                    VStack(spacing: 8) {
+                    VStack(spacing: 5) {
                         Text(controller.selectedScene.displayName)
                             .font(.title3.weight(.semibold))
                             .foregroundStyle(.secondary)
                         Text(controller.selectedSoundscape.displayName)
-                            .font(.system(size: 28, weight: .semibold))
+                            .font(.system(size: 26, weight: .semibold))
                     }
 
                     Text(presentation.centralText)
-                        .font(.system(size: presentation.isUnlimited ? 86 : 104, weight: .semibold, design: .rounded))
+                        .font(.system(size: presentation.isUnlimited ? 82 : 96, weight: .semibold, design: .rounded))
                         .monospacedDigit()
                         .minimumScaleFactor(0.72)
                         .lineLimit(1)
+                        .padding(.top, 2)
 
                     Text(presentation.isUnlimited ? "不限时" : "倒计时")
                         .font(.headline)
                         .foregroundStyle(.secondary)
 
                     sessionControls
+                    sessionVolumeControl
+                        .padding(.top, 4)
+                    sessionSoundscapeSwitcher
+                        .padding(.top, 4)
 
-                    Spacer(minLength: 24)
+                    Spacer(minLength: 8)
                 }
+                .frame(maxWidth: 560, maxHeight: .infinity)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 20)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(28)
 
                 if presentation.showsCornerClock {
                     VStack(alignment: .trailing, spacing: 4) {
@@ -82,7 +89,7 @@ struct MainWindowView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Text(clockText)
-                            .font(.system(size: 30, weight: .semibold, design: .rounded))
+                            .font(.system(size: 28, weight: .semibold, design: .rounded))
                             .monospacedDigit()
                     }
                     .padding(20)
@@ -374,10 +381,10 @@ struct MainWindowView: View {
             Circle()
                 .fill(AppTheme.selectedBackground(for: colorScheme))
             Image(systemName: controller.selectedSoundscape.systemImage)
-                .font(.system(size: 52, weight: .semibold))
+                .font(.system(size: 46, weight: .semibold))
                 .foregroundStyle(.tint)
         }
-        .frame(width: 132, height: 132)
+        .frame(width: 112, height: 112)
     }
 
     private var sessionControls: some View {
@@ -401,6 +408,48 @@ struct MainWindowView: View {
             .buttonStyle(.borderedProminent)
             .keyboardShortcut(.escape, modifiers: [])
             .accessibilityLabel("停止")
+        }
+    }
+
+    private var sessionVolumeControl: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "speaker.wave.2")
+                .foregroundStyle(.secondary)
+
+            Slider(
+                value: Binding(
+                    get: { Double(controller.volume) },
+                    set: { controller.volume = Float($0) }
+                ),
+                in: 0...1
+            )
+
+            Text("\(Int(controller.volume * 100))%")
+                .font(.callout.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(width: 42, alignment: .trailing)
+        }
+        .frame(maxWidth: 340)
+    }
+
+    private var sessionSoundscapeSwitcher: some View {
+        HStack(spacing: 10) {
+            ForEach(controller.availableSoundscapes) { soundscape in
+                Button {
+                    controller.chooseSoundscape(soundscape)
+                } label: {
+                    VStack(spacing: 5) {
+                        Image(systemName: soundscape.systemImage)
+                            .font(.system(size: 17, weight: .medium))
+                        Text(soundscape.displayName)
+                            .font(.caption.weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.82)
+                    }
+                    .frame(width: 94, height: 50)
+                }
+                .buttonStyle(SoundscapeTileButtonStyle(isSelected: controller.selectedSoundscape == soundscape, colorScheme: colorScheme))
+            }
         }
     }
 

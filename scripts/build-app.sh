@@ -10,10 +10,13 @@ VERSION="${VERSION:-0.2.0}"
 BUILD_NUMBER="${BUILD_NUMBER:-2}"
 CODESIGN_IDENTITY="${CODESIGN_IDENTITY:--}"
 BUILD_DIR="$ROOT_DIR/build"
-APP_DIR="$BUILD_DIR/$APP_NAME.app"
+STAGING_DIR="${TMPDIR:-/tmp}/$APP_NAME-build-$$"
+APP_DIR="$STAGING_DIR/$APP_NAME.app"
+OUTPUT_APP_DIR="$BUILD_DIR/$APP_NAME.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
+trap 'rm -rf "$STAGING_DIR"' EXIT
 
 cd "$ROOT_DIR"
 swift build -c "$CONFIGURATION" --product "$APP_NAME"
@@ -21,7 +24,7 @@ swift build -c "$CONFIGURATION" --product "$APP_NAME"
 EXECUTABLE_PATH="$(swift build -c "$CONFIGURATION" --product "$APP_NAME" --show-bin-path)/$APP_NAME"
 RESOURCE_BUNDLE="$(dirname "$EXECUTABLE_PATH")/${APP_NAME}_${APP_NAME}.bundle"
 
-rm -rf "$APP_DIR"
+rm -rf "$STAGING_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
 cp -X "$EXECUTABLE_PATH" "$MACOS_DIR/$APP_NAME"
@@ -74,4 +77,8 @@ if command -v codesign >/dev/null 2>&1; then
   codesign --force --deep --sign "$CODESIGN_IDENTITY" "$APP_DIR" >/dev/null
 fi
 
-echo "$APP_DIR"
+rm -rf "$OUTPUT_APP_DIR"
+mkdir -p "$BUILD_DIR"
+ditto --noextattr "$APP_DIR" "$OUTPUT_APP_DIR"
+
+echo "$OUTPUT_APP_DIR"
