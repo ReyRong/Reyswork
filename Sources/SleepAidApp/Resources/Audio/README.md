@@ -2,6 +2,8 @@ Loopable white-noise files live here.
 
 Bundled files should be reviewed, loopable, and licensed for app distribution. See `SOURCE_CANDIDATES.md` for source notes and license checks.
 
+Some bundled sounds require attribution. Keep `SOURCE_CANDIDATES.md` with the app source when distributing builds.
+
 Supported filenames:
 
 - ocean.m4a or ocean.wav

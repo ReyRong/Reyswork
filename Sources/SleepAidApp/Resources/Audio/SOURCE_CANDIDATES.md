@@ -2,9 +2,9 @@
 
 Checked on 2026-07-19.
 
-Prefer Creative Commons 0 sources for bundled app audio. Freesound original-quality downloads usually require a free login/OAuth download flow, but the sound pages expose license, duration, format, and technical metadata for review.
+Prefer Creative Commons 0 sources for bundled app audio when possible. Freesound original-quality downloads usually require a free login/OAuth download flow, but the sound pages expose license, duration, format, and technical metadata for review.
 
-## Recommended CC0 Candidates
+## Recommended Bundled Sources
 
 | App asset | Scene | Recommended source | License | Duration / format | Loop note |
 | --- | --- | --- | --- | --- | --- |
@@ -12,7 +12,7 @@ Prefer Creative Commons 0 sources for bundled app audio. Freesound original-qual
 | `fireplace.m4a` | 壁炉柴火 | Freesound: Fireplace by myLoop, https://freesound.org/people/myLoop/sounds/852107/ | CC0 | 0:08 WAV, 48 kHz, stereo | Source says perfect loop / seamless loop. Short, but good for subtle fireplace texture. |
 | `rain.m4a` | 淅淅雨声 | Freesound: Rain_Loop.wav by Snoopy20111, https://freesound.org/s/399072/ | CC0 | 5:16 WAV, 96 kHz, stereo | Source says simple looping rain, collapsible to mono. Downsample before bundling. |
 | `summer-night.m4a` | 虫鸣夏夜 | Freesound: Crickets - Warm Summer Night - Ambient.wav by Speziax, https://www.freesound.org/people/Speziax/sounds/645329/ | CC0 | 1:55 WAV, 44.1 kHz, stereo | Not explicitly marked seamless, but steady ambience should crossfade-loop cleanly after audition. |
-| `cafe.m4a` | 咖啡厅环境 | Freesound: Cafe Ambience Day - 2 - Sound Devices 702 - Senn K6.WAV by lunchmoney, https://freesound.org/people/lunchmoney/sounds/380201/ | CC0 | 0:38 WAV, 96.096 kHz, mono | User-selected source; steady midday cafe ambience for focus mode. |
+| `cafe.m4a` | 咖啡厅环境 | Freesound: Supermarket Cafe.wav by Benboncan, https://freesound.org/people/Benboncan/sounds/67191/ | CC BY 4.0 | 17:13 WAV source; bundled from public preview MP3 converted to AAC M4A | User-selected source; contains Welsh and English voices in a supermarket cafe setting. Attribution required. |
 | `library.m4a` | 图书馆氛围 | Freesound: Quiet library ambience by xkeril, https://freesound.org/people/xkeril/sounds/620683/ | CC0 | 9:40 WAV, 48 kHz, stereo | Long quiet ambience with page/pen/book/chair/ventilation texture. Trim or compress for bundle size. |
 
 ## Backup Candidates
