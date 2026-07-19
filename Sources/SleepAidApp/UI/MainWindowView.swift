@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainWindowView: View {
     @ObservedObject var controller: SleepAidController
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         NavigationSplitView {
@@ -35,7 +36,7 @@ struct MainWindowView: View {
                 .padding(28)
                 .frame(maxWidth: 780, alignment: .leading)
             }
-            .background(Color(nsColor: .windowBackgroundColor))
+            .background(AppTheme.windowBackground)
         }
     }
 
@@ -77,7 +78,11 @@ struct MainWindowView: View {
                         }
                         .frame(maxWidth: .infinity, minHeight: 104, alignment: .leading)
                         .padding(14)
-                        .background(selectionBackground(for: soundscape), in: RoundedRectangle(cornerRadius: 8))
+                        .background(soundscapeCardBackground(for: soundscape), in: RoundedRectangle(cornerRadius: 8))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(soundscapeCardBorder(for: soundscape), lineWidth: controller.selectedSoundscape == soundscape ? 1.2 : 0.6)
+                        }
                     }
                     .buttonStyle(.plain)
                 }
@@ -219,7 +224,11 @@ struct MainWindowView: View {
                     }
                     .padding(.vertical, 6)
                     .padding(.horizontal, 10)
-                    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+                    .background(AppTheme.panelBackground, in: RoundedRectangle(cornerRadius: 8))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(AppTheme.neutralBorder(for: colorScheme), lineWidth: 0.5)
+                    }
                 }
             }
         }
@@ -253,10 +262,16 @@ struct MainWindowView: View {
         }
     }
 
-    private func selectionBackground(for soundscape: Soundscape) -> Color {
+    private func soundscapeCardBackground(for soundscape: Soundscape) -> Color {
         controller.selectedSoundscape == soundscape
-            ? Color.accentColor.opacity(0.16)
-            : Color(nsColor: .controlBackgroundColor)
+            ? AppTheme.selectedBackground(for: colorScheme)
+            : AppTheme.panelBackground
+    }
+
+    private func soundscapeCardBorder(for soundscape: Soundscape) -> Color {
+        controller.selectedSoundscape == soundscape
+            ? AppTheme.selectedBorder(for: colorScheme)
+            : AppTheme.neutralBorder(for: colorScheme)
     }
 
     private func sectionHeader(_ title: String) -> some View {
