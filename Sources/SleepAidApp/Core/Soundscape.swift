@@ -1,5 +1,48 @@
 import Foundation
 
+enum NoiseScene: String, CaseIterable, Identifiable {
+    case sleep
+    case focus
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .sleep:
+            return "助眠"
+        case .focus:
+            return "专注"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .sleep:
+            return "从已选择为助眠的白噪音中随机播放，降低入睡前的选择成本。"
+        case .focus:
+            return "播放被标记为专注的背景音，适合工作、学习和阅读。"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .sleep:
+            return "moon.zzz.fill"
+        case .focus:
+            return "target"
+        }
+    }
+
+    var defaultMinutes: Int {
+        switch self {
+        case .sleep:
+            return 45
+        case .focus:
+            return 60
+        }
+    }
+}
+
 enum Soundscape: String, CaseIterable, Identifiable {
     case ocean
     case fireplace
@@ -58,6 +101,56 @@ enum Soundscape: String, CaseIterable, Identifiable {
         case .summerNight:
             return "moon.stars"
         }
+    }
+}
+
+struct SoundscapeSceneAssignments: Equatable {
+    private var mapping: [Soundscape: Set<NoiseScene>]
+
+    static let defaults = SoundscapeSceneAssignments(
+        mapping: [
+            .ocean: [.sleep],
+            .fireplace: [.sleep],
+            .rain: [.sleep, .focus],
+            .summerNight: [.sleep, .focus]
+        ]
+    )
+
+    init(mapping: [Soundscape: Set<NoiseScene>]) {
+        var completeMapping: [Soundscape: Set<NoiseScene>] = [:]
+        for soundscape in Soundscape.allCases {
+            completeMapping[soundscape] = mapping[soundscape, default: []]
+        }
+        self.mapping = completeMapping
+    }
+
+    func scenes(for soundscape: Soundscape) -> Set<NoiseScene> {
+        mapping[soundscape, default: []]
+    }
+
+    func isEnabled(_ soundscape: Soundscape, for scene: NoiseScene) -> Bool {
+        scenes(for: soundscape).contains(scene)
+    }
+
+    func soundscapes(for scene: NoiseScene) -> [Soundscape] {
+        Soundscape.allCases.filter { isEnabled($0, for: scene) }
+    }
+
+    mutating func set(_ soundscape: Soundscape, enabled: Bool, for scene: NoiseScene) {
+        var scenes = mapping[soundscape, default: []]
+
+        if enabled {
+            scenes.insert(scene)
+            mapping[soundscape] = scenes
+            return
+        }
+
+        guard soundscapes(for: scene).count > 1 else {
+            return
+        }
+
+        scenes.remove(scene)
+        mapping[soundscape] = scenes
     }
 }
 

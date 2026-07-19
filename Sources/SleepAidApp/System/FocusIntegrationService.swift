@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 final class FocusIntegrationService: ObservableObject {
-    @Published private(set) var statusMessage = "已预留 Focus 驱动入口，后续可接入 Focus Filter 或 App Intent。"
+    @Published private(set) var statusMessage = "已预留专注模式入口，后续可接入 Focus Filter 或 App Intent。"
 
     private var activateSleepPresetAction: (() -> Void)?
 

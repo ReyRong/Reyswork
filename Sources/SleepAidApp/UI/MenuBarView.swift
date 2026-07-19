@@ -7,8 +7,12 @@ struct MenuBarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label(controller.selectedSoundscape.displayName, systemImage: controller.selectedSoundscape.systemImage)
+            Label(controller.selectedScene.displayName, systemImage: controller.selectedScene.systemImage)
                 .font(.headline)
+
+            Text(controller.selectedSoundscape.displayName)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
 
             HStack {
                 Text(controller.remainingText)
@@ -23,8 +27,8 @@ struct MenuBarView: View {
                 controller.pauseOrResume()
             }
 
-            Button("45 分钟", systemImage: "timer") {
-                controller.startQuickSession(minutes: 45)
+            Button("\(controller.selectedScene.defaultMinutes) 分钟", systemImage: "timer") {
+                controller.startQuickSession(minutes: controller.selectedScene.defaultMinutes)
             }
 
             Button("停止", systemImage: "stop.fill") {

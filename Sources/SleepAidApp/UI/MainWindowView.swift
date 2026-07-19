@@ -5,11 +5,11 @@ struct MainWindowView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(Soundscape.allCases, selection: $controller.selectedSoundscape) { soundscape in
-                Label(soundscape.displayName, systemImage: soundscape.systemImage)
-                    .tag(soundscape)
+            List(NoiseScene.allCases, selection: $controller.selectedScene) { scene in
+                Label(scene.displayName, systemImage: scene.systemImage)
+                    .tag(scene)
             }
-            .navigationTitle("音景")
+            .navigationTitle("场景")
         } detail: {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
@@ -17,10 +17,11 @@ struct MainWindowView: View {
                     soundscapePanel
                     timerPanel
                     controlsPanel
+                    libraryPanel
                     systemPanel
                 }
                 .padding(28)
-                .frame(maxWidth: 760, alignment: .leading)
+                .frame(maxWidth: 780, alignment: .leading)
             }
             .background(Color(nsColor: .windowBackgroundColor))
         }
@@ -28,9 +29,9 @@ struct MainWindowView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label(controller.selectedSoundscape.displayName, systemImage: controller.selectedSoundscape.systemImage)
+            Label(controller.selectedScene.displayName, systemImage: controller.selectedScene.systemImage)
                 .font(.system(size: 30, weight: .semibold))
-            Text(controller.selectedSoundscape.detail)
+            Text(controller.selectedScene.detail)
                 .font(.body)
                 .foregroundStyle(.secondary)
         }
@@ -38,11 +39,17 @@ struct MainWindowView: View {
 
     private var soundscapePanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("音景")
-                .font(.headline)
+            HStack {
+                Text("当前场景的白噪音")
+                    .font(.headline)
+                Spacer()
+                Text("\(controller.availableSoundscapes.count) 个可用")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
-                ForEach(Soundscape.allCases) { soundscape in
+                ForEach(controller.availableSoundscapes) { soundscape in
                     Button {
                         controller.selectedSoundscape = soundscape
                     } label: {
@@ -62,6 +69,12 @@ struct MainWindowView: View {
                     }
                     .buttonStyle(.plain)
                 }
+            }
+
+            if controller.selectedScene == .sleep {
+                Label("开始助眠时会从这些白噪音里随机选择一个。", systemImage: "shuffle")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -103,7 +116,7 @@ struct MainWindowView: View {
                 .font(.headline)
 
             HStack(spacing: 12) {
-                Button("开始", systemImage: "moon.zzz.fill") {
+                Button("开始\(controller.selectedScene.displayName)", systemImage: controller.selectedScene.systemImage) {
                     controller.startSelectedSession()
                 }
                 .buttonStyle(.borderedProminent)
@@ -142,6 +155,42 @@ struct MainWindowView: View {
         }
     }
 
+    private var libraryPanel: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("媒体库用途")
+                .font(.headline)
+
+            VStack(spacing: 8) {
+                ForEach(Soundscape.allCases) { soundscape in
+                    HStack(spacing: 14) {
+                        Label(soundscape.displayName, systemImage: soundscape.systemImage)
+                            .frame(width: 150, alignment: .leading)
+
+                        ForEach(NoiseScene.allCases) { scene in
+                            Toggle(
+                                scene.displayName,
+                                isOn: Binding(
+                                    get: {
+                                        controller.sceneAssignments.isEnabled(soundscape, for: scene)
+                                    },
+                                    set: { enabled in
+                                        controller.setSceneAssignment(soundscape, enabled: enabled, for: scene)
+                                    }
+                                )
+                            )
+                            .toggleStyle(.checkbox)
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+                }
+            }
+        }
+    }
+
     private var systemPanel: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("系统")
@@ -164,7 +213,7 @@ struct MainWindowView: View {
                 Label(controller.focusIntegration.statusMessage, systemImage: "moon.circle")
                     .foregroundStyle(.secondary)
                 Spacer()
-                Button("测试入口", systemImage: "scope") {
+                Button("测试助眠入口", systemImage: "scope") {
                     controller.activateSleepPresetFromFocus()
                 }
             }

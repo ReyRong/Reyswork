@@ -3,9 +3,17 @@ import Foundation
 
 @MainActor
 final class SleepAidController: ObservableObject {
+    @Published var selectedScene: NoiseScene = .sleep {
+        didSet {
+            selectedMinutes = selectedScene.defaultMinutes
+            customMinutes = selectedScene.defaultMinutes
+            keepSelectedSoundscapeAvailable()
+        }
+    }
     @Published var selectedSoundscape: Soundscape = .rain
     @Published var selectedMinutes = 45
     @Published var customMinutes = 45
+    @Published var sceneAssignments = SoundscapeSceneAssignments.defaults
     @Published var lastErrorMessage: String?
 
     let audioPlayer: AudioPlayerService
@@ -40,34 +48,44 @@ final class SleepAidController: ObservableObject {
         sleepTimer.isRunning ? sleepTimer.formattedRemaining() : "--:--"
     }
 
+    var availableSoundscapes: [Soundscape] {
+        sceneAssignments.soundscapes(for: selectedScene)
+    }
+
     var menuBarSymbol: String {
         switch playbackState {
         case .playing:
-            return "moon.zzz.fill"
+            return selectedScene.systemImage
         case .paused:
             return "pause.circle"
         case .error:
             return "exclamationmark.triangle"
         case .idle, .preparing:
-            return "moon.zzz"
+            return selectedScene.systemImage
         }
     }
 
     func startSelectedSession() {
-        startSession(soundscape: selectedSoundscape, minutes: selectedMinutes)
+        let soundscape = nextSoundscape(for: selectedScene)
+        selectedSoundscape = soundscape
+        startSession(soundscape: soundscape, minutes: selectedMinutes)
     }
 
     func startCustomSession() {
         let minutes = min(max(customMinutes, 1), 480)
         customMinutes = minutes
         selectedMinutes = minutes
-        startSession(soundscape: selectedSoundscape, minutes: minutes)
+        let soundscape = nextSoundscape(for: selectedScene)
+        selectedSoundscape = soundscape
+        startSession(soundscape: soundscape, minutes: minutes)
     }
 
     func startQuickSession(minutes: Int) {
         selectedMinutes = minutes
         customMinutes = minutes
-        startSession(soundscape: selectedSoundscape, minutes: minutes)
+        let soundscape = nextSoundscape(for: selectedScene)
+        selectedSoundscape = soundscape
+        startSession(soundscape: soundscape, minutes: minutes)
     }
 
     func stopSession(fadeOut: Bool = true) {
@@ -87,11 +105,17 @@ final class SleepAidController: ObservableObject {
     }
 
     func activateSleepPresetFromFocus() {
+        selectedScene = .sleep
         focusIntegration.activateSleepPreset()
     }
 
     func setLoginItemEnabled(_ enabled: Bool) {
         loginItemService.setEnabled(enabled)
+    }
+
+    func setSceneAssignment(_ soundscape: Soundscape, enabled: Bool, for scene: NoiseScene) {
+        sceneAssignments.set(soundscape, enabled: enabled, for: scene)
+        keepSelectedSoundscapeAvailable()
     }
 
     private func startSession(soundscape: Soundscape, minutes: Int) {
@@ -110,10 +134,31 @@ final class SleepAidController: ObservableObject {
     }
 
     private func startDefaultSleepPreset() {
+        selectedScene = .sleep
+        let soundscape = nextSoundscape(for: .sleep)
         selectedSoundscape = .rain
         selectedMinutes = 45
         customMinutes = 45
-        startSession(soundscape: .rain, minutes: 45)
+        selectedSoundscape = soundscape
+        startSession(soundscape: soundscape, minutes: 45)
+    }
+
+    private func nextSoundscape(for scene: NoiseScene) -> Soundscape {
+        let available = sceneAssignments.soundscapes(for: scene)
+
+        if scene == .focus, available.contains(selectedSoundscape) {
+            return selectedSoundscape
+        }
+
+        return available.randomElement() ?? .rain
+    }
+
+    private func keepSelectedSoundscapeAvailable() {
+        let available = availableSoundscapes
+        guard !available.contains(selectedSoundscape), let firstAvailable = available.first else {
+            return
+        }
+        selectedSoundscape = firstAvailable
     }
 
     private func wireChildUpdates() {
