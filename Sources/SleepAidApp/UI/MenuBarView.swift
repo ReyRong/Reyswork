@@ -57,26 +57,12 @@ struct MenuBarView: View {
     private var playbackControls: some View {
         HStack(spacing: 8) {
             Button {
-                controller.startSelectedSession()
+                handlePrimaryPlaybackAction()
             } label: {
-                Label("开始", systemImage: controller.selectedScene.systemImage)
+                Label(primaryPlaybackTitle, systemImage: primaryPlaybackImage)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-
-            Button {
-                if controller.playbackState == .paused {
-                    controller.resumeSession()
-                } else {
-                    controller.pauseSession()
-                }
-            } label: {
-                Image(systemName: pauseResumeImage)
-                    .frame(width: 28)
-            }
-            .help(pauseResumeTitle)
-            .buttonStyle(.bordered)
-            .disabled(!controller.playbackState.isActive)
 
             Button {
                 controller.stopSession(fadeOut: false)
@@ -221,6 +207,24 @@ struct MenuBarView: View {
 
     private var pauseResumeImage: String {
         controller.playbackState == .paused ? "play.fill" : "pause.fill"
+    }
+
+    private var primaryPlaybackTitle: String {
+        controller.playbackState.isActive ? pauseResumeTitle : "开始"
+    }
+
+    private var primaryPlaybackImage: String {
+        controller.playbackState.isActive ? pauseResumeImage : controller.selectedScene.systemImage
+    }
+
+    private func handlePrimaryPlaybackAction() {
+        if controller.playbackState == .paused {
+            controller.resumeSession()
+        } else if controller.playbackState.isActive {
+            controller.pauseSession()
+        } else {
+            controller.startSelectedSession()
+        }
     }
 }
 
