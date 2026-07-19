@@ -19,4 +19,19 @@ final class AudioResourceResolverTests: XCTestCase {
             XCTAssertEqual(error as? AudioPlayerError, .resourceMissing(.ocean))
         }
     }
+
+    func testFindsResourceBundleInsideInstalledAppResourcesLayout() throws {
+        let appURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("app")
+        let bundleURL = appURL
+            .appendingPathComponent("Contents/Resources/SleepAidApp_SleepAidApp.bundle")
+        try FileManager.default.createDirectory(at: bundleURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: appURL) }
+
+        XCTAssertEqual(
+            AudioResourceResolver.resourceBundleURL(inAppBundleAt: appURL),
+            bundleURL.standardizedFileURL
+        )
+    }
 }
