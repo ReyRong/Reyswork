@@ -9,6 +9,17 @@ final class SoundscapeSceneAssignmentsTests: XCTestCase {
         XCTAssertFalse(assignments.soundscapes(for: .focus).isEmpty)
     }
 
+    func testCafeAndLibraryAreFocusSoundscapesByDefault() {
+        let assignments = SoundscapeSceneAssignments.defaults
+
+        XCTAssertEqual(Soundscape.cafe.assetBaseName, "cafe")
+        XCTAssertEqual(Soundscape.library.assetBaseName, "library")
+        XCTAssertTrue(assignments.soundscapes(for: .focus).contains(.cafe))
+        XCTAssertTrue(assignments.soundscapes(for: .focus).contains(.library))
+        XCTAssertFalse(assignments.soundscapes(for: .sleep).contains(.cafe))
+        XCTAssertFalse(assignments.soundscapes(for: .sleep).contains(.library))
+    }
+
     func testTogglingSceneUpdatesSoundscapeAvailability() {
         var assignments = SoundscapeSceneAssignments.defaults
 
@@ -29,7 +40,9 @@ final class SoundscapeSceneAssignmentsTests: XCTestCase {
                 .rain: [.sleep],
                 .ocean: [.focus],
                 .fireplace: [],
-                .summerNight: []
+                .summerNight: [],
+                .cafe: [],
+                .library: []
             ]
         )
 

@@ -48,6 +48,8 @@ enum Soundscape: String, CaseIterable, Identifiable {
     case fireplace
     case rain
     case summerNight
+    case cafe
+    case library
 
     var id: String { rawValue }
 
@@ -61,6 +63,10 @@ enum Soundscape: String, CaseIterable, Identifiable {
             return "淅淅雨声"
         case .summerNight:
             return "虫鸣夏夜"
+        case .cafe:
+            return "咖啡厅环境"
+        case .library:
+            return "图书馆氛围"
         }
     }
 
@@ -74,6 +80,10 @@ enum Soundscape: String, CaseIterable, Identifiable {
             return "均匀细雨落在窗外"
         case .summerNight:
             return "温柔虫鸣与安静夜色"
+        case .cafe:
+            return "低声交谈、杯盘轻响和柔和室内底噪"
+        case .library:
+            return "翻页、远处脚步和安静学习氛围"
         }
     }
 
@@ -87,6 +97,10 @@ enum Soundscape: String, CaseIterable, Identifiable {
             return "rain"
         case .summerNight:
             return "summer-night"
+        case .cafe:
+            return "cafe"
+        case .library:
+            return "library"
         }
     }
 
@@ -100,6 +114,10 @@ enum Soundscape: String, CaseIterable, Identifiable {
             return "cloud.rain"
         case .summerNight:
             return "moon.stars"
+        case .cafe:
+            return "cup.and.saucer"
+        case .library:
+            return "books.vertical"
         }
     }
 }
@@ -112,7 +130,9 @@ struct SoundscapeSceneAssignments: Equatable {
             .ocean: [.sleep],
             .fireplace: [.sleep],
             .rain: [.sleep, .focus],
-            .summerNight: [.sleep, .focus]
+            .summerNight: [.sleep, .focus],
+            .cafe: [.focus],
+            .library: [.focus]
         ]
     )
 
