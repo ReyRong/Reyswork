@@ -20,7 +20,7 @@ struct SettingsWindowView: View {
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()
-                        .frame(width: 230)
+                        .frame(width: 200)
                     }
 
                     settingsRow("启动时") {
@@ -73,7 +73,7 @@ struct SettingsWindowView: View {
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()
-                        .frame(width: 260)
+                        .frame(width: 220)
                     }
 
                     settingsRow("开始方式") {
@@ -81,7 +81,7 @@ struct SettingsWindowView: View {
                             Text(StartBehavior.randomPool.displayName(for: .sleep)).tag(StartBehavior.randomPool.rawValue)
                             Text(StartBehavior.currentSelection.displayName(for: .sleep)).tag(StartBehavior.currentSelection.rawValue)
                         }
-                        .frame(width: 260)
+                        .frame(width: 220)
                     }
                 }
 
@@ -95,7 +95,7 @@ struct SettingsWindowView: View {
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()
-                        .frame(width: 340)
+                        .frame(width: 300)
                     }
 
                     settingsRow("开始方式") {
@@ -103,12 +103,12 @@ struct SettingsWindowView: View {
                             Text(StartBehavior.currentSelection.displayName(for: .focus)).tag(StartBehavior.currentSelection.rawValue)
                             Text(StartBehavior.randomPool.displayName(for: .focus)).tag(StartBehavior.randomPool.rawValue)
                         }
-                        .frame(width: 260)
+                        .frame(width: 220)
                     }
                 }
             }
-            .padding(.horizontal, 28)
-            .padding(.vertical, 24)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 20)
         }
         .background(AppTheme.windowBackground(for: colorScheme))
     }
@@ -160,12 +160,12 @@ struct SettingsWindowView: View {
             HStack {
                 Text(title)
                     .font(.body)
-                Spacer(minLength: 24)
+                Spacer(minLength: 16)
                 content()
-                    .frame(maxWidth: 360, alignment: .trailing)
+                    .frame(maxWidth: 300, alignment: .trailing)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 13)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
 
             Divider()
                 .overlay(AppTheme.divider(for: colorScheme))

@@ -17,15 +17,26 @@ struct MainWindowView: View {
             Group {
                 if controller.playbackState.isActive {
                     playbackSessionView
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.985)),
+                            removal: .opacity.combined(with: .offset(y: 8))
+                        ))
                 } else {
                     controlConsole
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .offset(y: -8)),
+                            removal: .opacity.combined(with: .scale(scale: 0.985))
+                        ))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(AppTheme.windowBackground(for: colorScheme))
+            .animation(.easeInOut(duration: 0.28), value: controller.playbackState.isActive)
         }
         .onChange(of: controller.playbackState.isActive) { isActive in
-            columnVisibility = isActive ? .detailOnly : .all
+            withAnimation(.easeInOut(duration: 0.28)) {
+                columnVisibility = isActive ? .detailOnly : .all
+            }
         }
         .background(AppTheme.windowBackground(for: colorScheme))
         .toolbarBackground(AppTheme.windowBackground(for: colorScheme), for: .windowToolbar)

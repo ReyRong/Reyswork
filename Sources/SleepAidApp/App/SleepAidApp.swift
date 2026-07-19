@@ -20,7 +20,7 @@ struct SleepAidApp: App {
 
         Window("设置", id: "settings") {
             SettingsWindowView(controller: controller)
-                .frame(minWidth: 560, minHeight: 560)
+                .frame(minWidth: 480, minHeight: 540)
         }
         .windowResizability(.contentMinSize)
 
