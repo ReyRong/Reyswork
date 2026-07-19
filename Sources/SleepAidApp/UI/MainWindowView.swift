@@ -46,7 +46,6 @@ struct MainWindowView: View {
         VStack(alignment: .leading, spacing: 10) {
             nowPlayingPanel
             soundscapePanel
-            libraryPanel
             footerBar
         }
         .padding(14)
@@ -323,79 +322,13 @@ struct MainWindowView: View {
         }
     }
 
-    private var libraryPanel: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                sectionHeader("媒体库")
-                Spacer()
-                Text("每个场景至少保留一个可用音景")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 4) {
-                GridRow {
-                    Text("音景名称")
-                        .foregroundStyle(.secondary)
-                    Text("助眠")
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
-                    Text("专注")
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
-                }
-                .font(.caption)
-
-                ForEach(Soundscape.allCases) { soundscape in
-                    GridRow {
-                        Label(soundscape.displayName, systemImage: soundscape.systemImage)
-                            .frame(minWidth: 220, alignment: .leading)
-
-                        sceneAssignmentToggle(for: soundscape, scene: .sleep)
-                            .frame(maxWidth: .infinity)
-
-                        sceneAssignmentToggle(for: soundscape, scene: .focus)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .padding(.vertical, 1)
-                }
-            }
-            .font(.callout)
-            .padding(.top, 2)
-        }
-        .panelStyle(colorScheme: colorScheme)
-    }
-
     private var footerBar: some View {
-        HStack(spacing: 10) {
+        HStack {
             Button("设置...", systemImage: "gearshape") {
                 openWindow(id: "settings")
             }
 
-            Toggle(
-                isOn: Binding(
-                    get: { controller.loginItemService.isEnabled },
-                    set: { controller.setLoginItemEnabled($0) }
-                )
-            ) {
-                Label("登录后启动", systemImage: "person.crop.circle.badge.checkmark")
-            }
-            .toggleStyle(.checkbox)
-            .disabled(!controller.loginItemService.isAvailable)
-
-            Text(controller.loginItemService.statusMessage)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
             Spacer()
-
-            Label(controller.focusIntegration.statusMessage, systemImage: "moon.circle")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Button("测试助眠入口", systemImage: "scope") {
-                controller.activateSleepPresetFromFocus()
-            }
         }
         .font(.callout)
         .padding(.horizontal, 2)
@@ -489,22 +422,6 @@ struct MainWindowView: View {
                 .minimumScaleFactor(0.82)
         }
         .frame(minWidth: 100, alignment: .leading)
-    }
-
-    private func sceneAssignmentToggle(for soundscape: Soundscape, scene: NoiseScene) -> some View {
-        Toggle(
-            scene.displayName,
-            isOn: Binding(
-                get: {
-                    controller.sceneAssignments.isEnabled(soundscape, for: scene)
-                },
-                set: { enabled in
-                    controller.setSceneAssignment(soundscape, enabled: enabled, for: scene)
-                }
-            )
-        )
-        .labelsHidden()
-        .toggleStyle(.checkbox)
     }
 
     private func sectionHeader(_ title: String) -> some View {

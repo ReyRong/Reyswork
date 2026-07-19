@@ -106,6 +106,33 @@ struct SettingsWindowView: View {
                         .frame(width: 220)
                     }
                 }
+
+                section("媒体库") {
+                    HStack {
+                        Text("音景")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("助眠")
+                            .frame(width: 52)
+                        Text("专注")
+                            .frame(width: 52)
+                    }
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 14)
+                    .padding(.top, 12)
+                    .padding(.bottom, 6)
+
+                    ForEach(Soundscape.allCases) { soundscape in
+                        mediaLibraryRow(soundscape)
+                    }
+
+                    Text("每个场景至少保留一个可用音景。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 14)
+                        .padding(.top, 6)
+                        .padding(.bottom, 12)
+                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
@@ -171,6 +198,44 @@ struct SettingsWindowView: View {
                 .overlay(AppTheme.divider(for: colorScheme))
                 .padding(.leading, 16)
         }
+    }
+
+    private func mediaLibraryRow(_ soundscape: Soundscape) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Label(soundscape.displayName, systemImage: soundscape.systemImage)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                sceneAssignmentToggle(for: soundscape, scene: .sleep)
+                    .frame(width: 52)
+
+                sceneAssignmentToggle(for: soundscape, scene: .focus)
+                    .frame(width: 52)
+            }
+            .font(.callout)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 7)
+
+            Divider()
+                .overlay(AppTheme.divider(for: colorScheme))
+                .padding(.leading, 16)
+        }
+    }
+
+    private func sceneAssignmentToggle(for soundscape: Soundscape, scene: NoiseScene) -> some View {
+        Toggle(
+            scene.displayName,
+            isOn: Binding(
+                get: {
+                    controller.sceneAssignments.isEnabled(soundscape, for: scene)
+                },
+                set: { enabled in
+                    controller.setSceneAssignment(soundscape, enabled: enabled, for: scene)
+                }
+            )
+        )
+        .labelsHidden()
+        .toggleStyle(.checkbox)
     }
 }
 
