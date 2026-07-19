@@ -10,7 +10,7 @@ struct SettingsWindowView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 26) {
+            VStack(alignment: .leading, spacing: 22) {
                 section("通用") {
                     settingsRow("默认场景") {
                         Picker("默认场景", selection: $controller.selectedScene) {
@@ -28,19 +28,6 @@ struct SettingsWindowView: View {
                             .toggleStyle(.checkbox)
                     }
 
-                    settingsRow("登录后启动") {
-                        Toggle(
-                            "登录后启动",
-                            isOn: Binding(
-                                get: { controller.loginItemService.isEnabled },
-                                set: { controller.setLoginItemEnabled($0) }
-                            )
-                        )
-                        .labelsHidden()
-                        .toggleStyle(.checkbox)
-                        .disabled(!controller.loginItemService.isAvailable)
-                    }
-
                     settingsRow("默认音量") {
                         HStack(spacing: 12) {
                             Slider(
@@ -55,12 +42,6 @@ struct SettingsWindowView: View {
                                 .foregroundStyle(.secondary)
                                 .frame(width: 44, alignment: .trailing)
                         }
-                    }
-
-                    settingsRow("停止时淡出") {
-                        Toggle("停止时淡出", isOn: $stopWithFadeOut)
-                            .labelsHidden()
-                            .toggleStyle(.checkbox)
                     }
                 }
 
@@ -83,9 +64,7 @@ struct SettingsWindowView: View {
                         }
                         .frame(width: 220)
                     }
-                }
 
-                section("专注") {
                     settingsRow("默认时长（专注）") {
                         Picker("默认时长（专注）", selection: focusDurationBinding) {
                             Text("不限").tag(0)
@@ -104,6 +83,12 @@ struct SettingsWindowView: View {
                             Text(StartBehavior.randomPool.displayName(for: .focus)).tag(StartBehavior.randomPool.rawValue)
                         }
                         .frame(width: 220)
+                    }
+
+                    settingsRow("停止时淡出") {
+                        Toggle("停止时淡出", isOn: $stopWithFadeOut)
+                            .labelsHidden()
+                            .toggleStyle(.checkbox)
                     }
                 }
 
@@ -132,6 +117,39 @@ struct SettingsWindowView: View {
                         .padding(.horizontal, 14)
                         .padding(.top, 6)
                         .padding(.bottom, 12)
+                }
+
+                section("系统集成") {
+                    settingsRow("登录后启动") {
+                        Toggle(
+                            "登录后启动",
+                            isOn: Binding(
+                                get: { controller.loginItemService.isEnabled },
+                                set: { controller.setLoginItemEnabled($0) }
+                            )
+                        )
+                        .labelsHidden()
+                        .toggleStyle(.checkbox)
+                        .disabled(!controller.loginItemService.isAvailable)
+                    }
+
+                    infoRow(
+                        title: "登录项状态",
+                        message: controller.loginItemService.statusMessage,
+                        systemImage: "person.crop.circle.badge.checkmark"
+                    )
+
+                    infoRow(
+                        title: "专注入口",
+                        message: controller.focusIntegration.statusMessage,
+                        systemImage: "moon.circle"
+                    )
+
+                    settingsRow("调试入口") {
+                        Button("测试助眠入口", systemImage: "scope") {
+                            controller.activateSleepPresetFromFocus()
+                        }
+                    }
                 }
             }
             .padding(.horizontal, 20)
@@ -215,6 +233,29 @@ struct SettingsWindowView: View {
             .font(.callout)
             .padding(.horizontal, 14)
             .padding(.vertical, 7)
+
+            Divider()
+                .overlay(AppTheme.divider(for: colorScheme))
+                .padding(.leading, 16)
+        }
+    }
+
+    private func infoRow(title: String, message: String, systemImage: String) -> some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Label(title, systemImage: systemImage)
+                    .font(.body)
+
+                Spacer(minLength: 16)
+
+                Text(message)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 240, alignment: .trailing)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
 
             Divider()
                 .overlay(AppTheme.divider(for: colorScheme))
