@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 final class SleepTimer: ObservableObject {
-    static let presetMinutes = [20, 45, 90]
+    static let presetMinutes = [20, 45, 60, 90]
 
     @Published private(set) var remainingSeconds: TimeInterval = 0
     @Published private(set) var durationSeconds: TimeInterval = 0

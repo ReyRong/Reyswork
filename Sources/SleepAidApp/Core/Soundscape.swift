@@ -113,7 +113,7 @@ enum Soundscape: String, CaseIterable, Codable, Identifiable {
         case .rain:
             return "cloud.rain"
         case .summerNight:
-            return "moon.stars"
+            return "moon.stars.fill"
         case .cafe:
             return "cup.and.saucer"
         case .library:
