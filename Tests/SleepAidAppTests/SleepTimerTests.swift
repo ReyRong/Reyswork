@@ -16,8 +16,8 @@ final class SleepTimerTests: XCTestCase {
         timer.cancel()
     }
 
-    func testPresetMinutesIncludeFocusDefaultDuration() {
-        XCTAssertTrue(SleepTimer.presetMinutes.contains(NoiseScene.focus.defaultMinutes))
+    func testFocusDefaultDurationIsUnlimited() {
+        XCTAssertEqual(NoiseScene.focus.defaultMinutes, 0)
     }
 
     func testCancelClearsTimerState() {

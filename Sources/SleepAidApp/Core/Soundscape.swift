@@ -38,7 +38,7 @@ enum NoiseScene: String, CaseIterable, Codable, Identifiable {
         case .sleep:
             return 45
         case .focus:
-            return 60
+            return 0
         }
     }
 }
