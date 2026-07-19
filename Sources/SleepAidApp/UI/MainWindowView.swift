@@ -21,8 +21,8 @@ struct MainWindowView: View {
                     controlConsole
                 }
             }
-            .frame(maxWidth: 760, maxHeight: .infinity, alignment: .topLeading)
-            .background(AppTheme.windowBackground)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(AppTheme.windowBackground(for: colorScheme))
         }
         .onChange(of: controller.playbackState.isActive) { isActive in
             columnVisibility = isActive ? .detailOnly : .all
@@ -98,7 +98,7 @@ struct MainWindowView: View {
                     .padding(20)
                 }
             }
-            .background(AppTheme.windowBackground)
+            .background(AppTheme.windowBackground(for: colorScheme))
         }
     }
 
@@ -307,6 +307,7 @@ struct MainWindowView: View {
                 .font(.caption)
 
                 Divider()
+                    .overlay(AppTheme.divider(for: colorScheme))
                     .gridCellColumns(3)
 
                 ForEach(Soundscape.allCases) { soundscape in
@@ -324,13 +325,14 @@ struct MainWindowView: View {
 
                     if soundscape != Soundscape.allCases.last {
                         Divider()
+                            .overlay(AppTheme.divider(for: colorScheme))
                             .gridCellColumns(3)
                     }
                 }
             }
             .font(.callout)
             .padding(6)
-            .background(AppTheme.panelBackground, in: RoundedRectangle(cornerRadius: 8))
+            .background(AppTheme.innerSurface(for: colorScheme), in: RoundedRectangle(cornerRadius: 8))
             .overlay {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(AppTheme.neutralBorder(for: colorScheme), lineWidth: 0.5)
@@ -547,7 +549,7 @@ private struct SoundscapeTileButtonStyle: ButtonStyle {
             return AppTheme.selectedBackground(for: colorScheme)
         }
 
-        return AppTheme.panelBackground
+            return AppTheme.panelBackground(for: colorScheme)
     }
 
     private var border: Color {
@@ -560,10 +562,10 @@ private struct SoundscapeTileButtonStyle: ButtonStyle {
 private extension View {
     func panelStyle(colorScheme: ColorScheme) -> some View {
         padding(14)
-            .background(AppTheme.windowBackground, in: RoundedRectangle(cornerRadius: 8))
+            .background(AppTheme.panelBackground(for: colorScheme), in: RoundedRectangle(cornerRadius: 8))
             .overlay {
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(AppTheme.neutralBorder(for: colorScheme), lineWidth: 0.6)
+                    .stroke(AppTheme.neutralBorder(for: colorScheme), lineWidth: colorScheme == .dark ? 0.35 : 0.6)
             }
     }
 }

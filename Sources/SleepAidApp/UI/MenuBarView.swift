@@ -30,7 +30,7 @@ struct MenuBarView: View {
         }
         .padding(14)
         .frame(width: 320)
-        .background(AppTheme.windowBackground)
+        .background(AppTheme.windowBackground(for: colorScheme))
     }
 
     private var header: some View {
@@ -111,7 +111,7 @@ struct MenuBarView: View {
             )
         }
         .padding(10)
-        .background(AppTheme.panelBackground, in: RoundedRectangle(cornerRadius: 8))
+        .background(AppTheme.panelBackground(for: colorScheme), in: RoundedRectangle(cornerRadius: 8))
     }
 
     private var sceneControls: some View {
@@ -251,7 +251,7 @@ private struct MenuPanelButtonStyle: ButtonStyle {
             return AppTheme.selectedBackground(for: colorScheme)
         }
 
-        return AppTheme.panelBackground
+            return AppTheme.panelBackground(for: colorScheme)
     }
 
     private var border: Color {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsWindowView: View {
     @ObservedObject var controller: SleepAidController
+    @Environment(\.colorScheme) private var colorScheme
     @AppStorage("settings.openMainWindowOnLaunch") private var openMainWindowOnLaunch = true
     @AppStorage("settings.stopWithFadeOut") private var stopWithFadeOut = true
     @AppStorage("settings.sleepStartBehavior") private var sleepStartBehavior = StartBehavior.randomPool.rawValue
@@ -109,7 +110,7 @@ struct SettingsWindowView: View {
             .padding(.horizontal, 28)
             .padding(.vertical, 24)
         }
-        .background(AppTheme.windowBackground)
+        .background(AppTheme.windowBackground(for: colorScheme))
     }
 
     private var sleepDurationBinding: Binding<Int> {
@@ -146,10 +147,10 @@ struct SettingsWindowView: View {
             VStack(spacing: 0) {
                 content()
             }
-            .background(AppTheme.panelBackground, in: RoundedRectangle(cornerRadius: 8))
+            .background(AppTheme.panelBackground(for: colorScheme), in: RoundedRectangle(cornerRadius: 8))
             .overlay {
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(AppTheme.separator.opacity(0.45), lineWidth: 0.5)
+                    .stroke(AppTheme.neutralBorder(for: colorScheme), lineWidth: colorScheme == .dark ? 0.35 : 0.5)
             }
         }
     }
@@ -167,6 +168,7 @@ struct SettingsWindowView: View {
             .padding(.vertical, 13)
 
             Divider()
+                .overlay(AppTheme.divider(for: colorScheme))
                 .padding(.leading, 16)
         }
     }
