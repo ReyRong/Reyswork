@@ -121,7 +121,12 @@ private struct WindowContentSizeRestorer: NSViewRepresentable {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            view.window?.resizeContentPreservingCenter(width: width, height: height)
+            guard let window = view.window else {
+                return
+            }
+
+            window.resizeContentPreservingCenter(width: width, height: height)
+            window.center()
         }
     }
 }

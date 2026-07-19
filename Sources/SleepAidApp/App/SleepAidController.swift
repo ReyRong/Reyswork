@@ -81,7 +81,7 @@ final class SleepAidController: ObservableObject {
     }
 
     func startSelectedSession() {
-        let soundscape = nextSoundscape(for: selectedScene)
+        let soundscape = currentSoundscape(for: selectedScene)
         selectedSoundscape = soundscape
         startSession(soundscape: soundscape, minutes: selectedMinutes)
     }
@@ -191,6 +191,10 @@ final class SleepAidController: ObservableObject {
 
     private func nextSoundscape(for scene: NoiseScene) -> Soundscape {
         SoundscapeSelector.select(for: scene, current: selectedSoundscape, assignments: sceneAssignments)
+    }
+
+    private func currentSoundscape(for scene: NoiseScene) -> Soundscape {
+        SoundscapeSelector.selectCurrent(for: scene, current: selectedSoundscape, assignments: sceneAssignments)
     }
 
     private func keepSelectedSoundscapeAvailable() {

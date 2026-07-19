@@ -2,6 +2,17 @@ import XCTest
 @testable import SleepAidApp
 
 final class SoundscapeSelectionTests: XCTestCase {
+    func testCurrentSelectionPrefersCurrentSoundscapeWhenAvailable() {
+        let selected = SoundscapeSelector.selectCurrent(
+            for: .sleep,
+            current: .fireplace,
+            assignments: .defaults,
+            randomIndex: { _ in 0 }
+        )
+
+        XCTAssertEqual(selected, .fireplace)
+    }
+
     func testSleepSelectionUsesOnlySleepPool() {
         let assignments = SoundscapeSceneAssignments(
             mapping: [

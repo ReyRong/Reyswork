@@ -113,25 +113,49 @@ struct MainWindowView: View {
                 }
             }
         )) { scene in
-            Label {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(scene.displayName)
-                        .font(.headline)
-                    Text("\(controller.sceneAssignments.soundscapes(for: scene).count) 个音景")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            } icon: {
-                Image(systemName: scene.systemImage)
-            }
-            .padding(.vertical, 6)
+            sceneSidebarRow(scene)
             .tag(scene)
-            .listRowBackground(AppTheme.windowBackground(for: colorScheme))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
         }
+        .listStyle(.sidebar)
         .navigationTitle("白噪音")
         .navigationSplitViewColumnWidth(min: 150, ideal: 170, max: 190)
         .scrollContentBackground(.hidden)
         .background(AppTheme.windowBackground(for: colorScheme))
+    }
+
+    private func sceneSidebarRow(_ scene: NoiseScene) -> some View {
+        let isSelected = controller.selectedScene == scene
+
+        return HStack(spacing: 10) {
+            Image(systemName: scene.systemImage)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                .frame(width: 18)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(scene.displayName)
+                    .font(.headline)
+                Text("\(controller.sceneAssignments.soundscapes(for: scene).count) 个音景")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 8)
+
+            if isSelected {
+                Text("当前")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tint)
+            }
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .background(
+            isSelected ? AppTheme.selectedBackground(for: colorScheme) : Color.clear,
+            in: RoundedRectangle(cornerRadius: 8)
+        )
     }
 
     private var nowPlayingPanel: some View {
