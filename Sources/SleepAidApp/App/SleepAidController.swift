@@ -12,7 +12,12 @@ final class SleepAidController: ObservableObject {
         }
     }
     @Published var selectedSoundscape: Soundscape = .rain { didSet { saveSettings() } }
-    @Published var selectedMinutes = 45 { didSet { saveSettings() } }
+    @Published var selectedMinutes = 45 {
+        didSet {
+            syncCustomMinutesWithSelectedPreset()
+            saveSettings()
+        }
+    }
     @Published var customMinutes = 45 { didSet { saveSettings() } }
     @Published var sceneAssignments = SoundscapeSceneAssignments.defaults { didSet { saveSettings() } }
     @Published var lastErrorMessage: String?
@@ -195,6 +200,13 @@ final class SleepAidController: ObservableObject {
 
     private func currentSoundscape(for scene: NoiseScene) -> Soundscape {
         SoundscapeSelector.selectCurrent(for: scene, current: selectedSoundscape, assignments: sceneAssignments)
+    }
+
+    private func syncCustomMinutesWithSelectedPreset() {
+        guard customMinutes != selectedMinutes else {
+            return
+        }
+        customMinutes = selectedMinutes
     }
 
     private func keepSelectedSoundscapeAvailable() {

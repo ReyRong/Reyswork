@@ -220,11 +220,16 @@ struct MainWindowView: View {
             .labelsHidden()
             .frame(maxWidth: 280)
 
-            Stepper(value: $controller.customMinutes, in: 1...480, step: 5) {
-                Text("自定义 \(controller.customMinutes) 分钟")
-                    .lineLimit(1)
+            HStack(spacing: 6) {
+                Text("自定义")
+                    .foregroundStyle(.secondary)
+                TextField("分钟", value: $controller.customMinutes, formatter: Self.minuteFormatter)
+                    .textFieldStyle(.roundedBorder)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 58)
+                Text("分钟")
+                    .foregroundStyle(.secondary)
             }
-            .disabled(controller.selectedScene == .focus && controller.selectedMinutes == 0)
 
             Button("应用", systemImage: "checkmark.circle") {
                 if !controller.playbackState.isActive {
@@ -234,7 +239,6 @@ struct MainWindowView: View {
                 }
                 controller.startCustomSession()
             }
-            .disabled(controller.selectedScene == .focus && controller.selectedMinutes == 0)
         }
         .frame(maxWidth: 560)
     }
@@ -348,6 +352,14 @@ struct MainWindowView: View {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.minute, .second]
         formatter.zeroFormattingBehavior = [.pad]
+        return formatter
+    }()
+
+    private static let minuteFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .none
+        formatter.minimum = 1
+        formatter.maximum = 480
         return formatter
     }()
 }
