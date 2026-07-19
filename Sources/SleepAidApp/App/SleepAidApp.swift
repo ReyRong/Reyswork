@@ -15,5 +15,6 @@ struct SleepAidApp: App {
         MenuBarExtra("白噪音", systemImage: controller.menuBarSymbol) {
             MenuBarView(controller: controller)
         }
+        .menuBarExtraStyle(.window)
     }
 }

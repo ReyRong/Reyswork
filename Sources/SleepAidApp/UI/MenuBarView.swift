@@ -4,97 +4,104 @@ import SwiftUI
 struct MenuBarView: View {
     @ObservedObject var controller: SleepAidController
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.colorScheme) private var colorScheme
 
     private let quickMinutes = [20, 45, 90]
+    private let soundscapeColumns = [
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8)
+    ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(controller.menuBarPresentation.title, systemImage: controller.selectedScene.systemImage)
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 14) {
+            header
 
-            Text(controller.menuBarPresentation.subtitle)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            playbackControls
 
             volumeControl
 
-            Divider()
+            sceneControls
 
-            Button("开始\(controller.selectedScene.displayName)", systemImage: controller.selectedScene.systemImage) {
-                controller.startSelectedSession()
+            soundscapeControls
+
+            durationControls
+
+            footerControls
+        }
+        .padding(14)
+        .frame(width: 320)
+        .background(AppTheme.windowBackground)
+    }
+
+    private var header: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: controller.menuBarPresentation.symbolName)
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundStyle(.tint)
+                .frame(width: 34)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(controller.menuBarPresentation.title)
+                    .font(.headline)
+                    .lineLimit(1)
+                Text(controller.menuBarPresentation.subtitle)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
 
-            Button(pauseResumeTitle, systemImage: pauseResumeImage) {
+            Spacer()
+        }
+    }
+
+    private var playbackControls: some View {
+        HStack(spacing: 8) {
+            Button {
+                controller.startSelectedSession()
+            } label: {
+                Label("开始", systemImage: controller.selectedScene.systemImage)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+
+            Button {
                 if controller.playbackState == .paused {
                     controller.resumeSession()
                 } else {
                     controller.pauseSession()
                 }
+            } label: {
+                Image(systemName: pauseResumeImage)
+                    .frame(width: 28)
             }
+            .help(pauseResumeTitle)
+            .buttonStyle(.bordered)
             .disabled(!controller.playbackState.isActive)
 
-            Button("停止", systemImage: "stop.fill") {
+            Button {
                 controller.stopSession(fadeOut: false)
+            } label: {
+                Image(systemName: "stop.fill")
+                    .frame(width: 28)
             }
+            .help("停止")
+            .buttonStyle(.bordered)
             .disabled(!controller.playbackState.isActive)
-
-            Divider()
-
-            ForEach(NoiseScene.allCases) { scene in
-                Button("开始\(scene.displayName)", systemImage: scene.systemImage) {
-                    controller.chooseScene(scene)
-                    controller.startQuickSession(minutes: scene.defaultMinutes)
-                }
-            }
-
-            Divider()
-
-            Text("切换音景")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            ForEach(controller.availableSoundscapes) { soundscape in
-                Button(soundscapeMenuTitle(for: soundscape), systemImage: soundscape.systemImage) {
-                    controller.chooseSoundscape(soundscape)
-                }
-            }
-
-            Divider()
-
-            Text("时长")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            if controller.selectedScene == .focus {
-                Button("不限时", systemImage: controller.selectedMinutes == 0 ? "checkmark.circle.fill" : "infinity") {
-                    controller.startQuickSession(minutes: 0)
-                }
-            }
-
-            ForEach(quickMinutes, id: \.self) { minutes in
-                Button(durationMenuTitle(for: minutes), systemImage: controller.selectedMinutes == minutes ? "checkmark.circle.fill" : "timer") {
-                    controller.startQuickSession(minutes: minutes)
-                }
-            }
-
-            Divider()
-
-            Button("打开主界面", systemImage: "macwindow") {
-                openWindow(id: "main")
-                NSApplication.shared.activate(ignoringOtherApps: true)
-            }
-
-            Button("退出", systemImage: "power") {
-                NSApplication.shared.terminate(nil)
-            }
         }
-        .padding(12)
-        .frame(width: 260)
     }
 
     private var volumeControl: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "speaker.wave.2")
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Label("音量", systemImage: "speaker.wave.2")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("\(Int(controller.volume * 100))%")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+
             Slider(
                 value: Binding(
                     get: { Double(controller.volume) },
@@ -102,23 +109,100 @@ struct MenuBarView: View {
                 ),
                 in: 0...1
             )
-            Text("\(Int(controller.volume * 100))%")
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-                .frame(width: 42, alignment: .trailing)
+        }
+        .padding(10)
+        .background(AppTheme.panelBackground, in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var sceneControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionTitle("场景")
+
+            HStack(spacing: 8) {
+                ForEach(NoiseScene.allCases) { scene in
+                    Button {
+                        controller.chooseScene(scene)
+                    } label: {
+                        Label(scene.displayName, systemImage: scene.systemImage)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(MenuPanelButtonStyle(isSelected: controller.selectedScene == scene, colorScheme: colorScheme))
+                }
+            }
         }
     }
 
-    private func soundscapeMenuTitle(for soundscape: Soundscape) -> String {
-        controller.selectedSoundscape == soundscape
-            ? "\(soundscape.displayName) ✓"
-            : soundscape.displayName
+    private var soundscapeControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionTitle("音景")
+
+            LazyVGrid(columns: soundscapeColumns, spacing: 8) {
+                ForEach(controller.availableSoundscapes) { soundscape in
+                    Button {
+                        controller.chooseSoundscape(soundscape)
+                    } label: {
+                        Label(soundscape.displayName, systemImage: soundscape.systemImage)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(MenuPanelButtonStyle(isSelected: controller.selectedSoundscape == soundscape, colorScheme: colorScheme))
+                }
+            }
+        }
     }
 
-    private func durationMenuTitle(for minutes: Int) -> String {
-        controller.selectedMinutes == minutes
-            ? "\(minutes) 分钟 ✓"
-            : "\(minutes) 分钟"
+    private var durationControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionTitle("时长")
+
+            HStack(spacing: 8) {
+                if controller.selectedScene == .focus {
+                    durationButton(title: "不限", minutes: 0)
+                }
+
+                ForEach(quickMinutes, id: \.self) { minutes in
+                    durationButton(title: "\(minutes)", minutes: minutes)
+                }
+            }
+        }
+    }
+
+    private var footerControls: some View {
+        HStack(spacing: 8) {
+            Button {
+                openWindow(id: "main")
+                NSApplication.shared.activate(ignoringOtherApps: true)
+            } label: {
+                Label("主界面", systemImage: "macwindow")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+
+            Button {
+                NSApplication.shared.terminate(nil)
+            } label: {
+                Image(systemName: "power")
+                    .frame(width: 28)
+            }
+            .help("退出")
+            .buttonStyle(.bordered)
+        }
+    }
+
+    private func durationButton(title: String, minutes: Int) -> some View {
+        Button {
+            controller.startQuickSession(minutes: minutes)
+        } label: {
+            Text(title)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(MenuPanelButtonStyle(isSelected: controller.selectedMinutes == minutes, colorScheme: colorScheme))
+    }
+
+    private func sectionTitle(_ title: String) -> some View {
+        Text(title)
+            .font(.caption)
+            .foregroundStyle(.secondary)
     }
 
     private var pauseResumeTitle: String {
@@ -127,5 +211,42 @@ struct MenuBarView: View {
 
     private var pauseResumeImage: String {
         controller.playbackState == .paused ? "play.fill" : "pause.fill"
+    }
+}
+
+private struct MenuPanelButtonStyle: ButtonStyle {
+    let isSelected: Bool
+    let colorScheme: ColorScheme
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.callout)
+            .padding(.vertical, 7)
+            .padding(.horizontal, 10)
+            .foregroundStyle(isSelected ? Color.primary : Color.primary)
+            .background(background(isPressed: configuration.isPressed), in: RoundedRectangle(cornerRadius: 8))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(border, lineWidth: isSelected ? 1 : 0.5)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func background(isPressed: Bool) -> Color {
+        if isPressed {
+            return Color.accentColor.opacity(colorScheme == .dark ? 0.34 : 0.20)
+        }
+
+        if isSelected {
+            return AppTheme.selectedBackground(for: colorScheme)
+        }
+
+        return AppTheme.panelBackground
+    }
+
+    private var border: Color {
+        isSelected
+            ? AppTheme.selectedBorder(for: colorScheme)
+            : AppTheme.neutralBorder(for: colorScheme)
     }
 }
