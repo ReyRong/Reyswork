@@ -9,9 +9,9 @@ final class SystemIntegrationStatusTests: XCTestCase {
         XCTAssertEqual(service.statusMessage, "快捷指令入口可用；系统专注模式自动联动暂未接入。")
     }
 
-    func testLoginItemUnsupportedStatusDoesNotMentionPrototype() {
+    func testLoginItemNotFoundStatusIsUserFacingDisabledState() {
         let message = LoginItemService.statusMessage(for: .notFound)
 
-        XCTAssertEqual(message, "当前安装方式不支持登录启动。")
+        XCTAssertEqual(message, "未开启。")
     }
 }

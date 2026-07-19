@@ -42,7 +42,7 @@ final class LoginItemService: ObservableObject {
             statusMessage = Self.statusMessage(for: .requiresApproval)
         case .notFound:
             isEnabled = false
-            isAvailable = false
+            isAvailable = true
             statusMessage = Self.statusMessage(for: .notFound)
         @unknown default:
             isEnabled = false
@@ -60,7 +60,7 @@ final class LoginItemService: ObservableObject {
         case .requiresApproval:
             return "已请求开启，请在系统设置的登录项中批准。"
         case .notFound:
-            return "当前安装方式不支持登录启动。"
+            return "未开启。"
         case .unknown:
             return "无法读取登录项状态。"
         }
