@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 final class FocusIntegrationService: ObservableObject {
-    @Published private(set) var statusMessage = "已预留专注模式入口，后续可接入 Focus Filter 或 App Intent。"
+    @Published private(set) var statusMessage = "快捷指令入口可用；系统专注模式自动联动暂未接入。"
 
     private var activateSleepPresetAction: (() -> Void)?
 
@@ -16,6 +16,6 @@ final class FocusIntegrationService: ObservableObject {
 
     func activateSleepPreset() {
         activateSleepPresetAction?()
-        statusMessage = "已通过 Focus 入口启动默认助眠预设。"
+        statusMessage = "已通过快捷指令入口启动默认助眠预设。"
     }
 }

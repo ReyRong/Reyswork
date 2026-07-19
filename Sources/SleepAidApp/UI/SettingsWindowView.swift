@@ -140,22 +140,19 @@ struct SettingsWindowView: View {
                     )
 
                     infoRow(
-                        title: "专注入口",
+                        title: "快捷指令",
                         message: controller.focusIntegration.statusMessage,
                         systemImage: "moon.circle"
                     )
-
-                    settingsRow("调试入口") {
-                        Button("测试助眠入口", systemImage: "scope") {
-                            controller.activateSleepPresetFromFocus()
-                        }
-                    }
                 }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
         }
         .background(AppTheme.windowBackground(for: colorScheme))
+        .onAppear {
+            controller.loginItemService.refreshStatus()
+        }
     }
 
     private var sleepDurationBinding: Binding<Int> {
