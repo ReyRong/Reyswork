@@ -8,12 +8,13 @@ final class SleepAidController: ObservableObject {
             selectedMinutes = selectedScene.defaultMinutes
             customMinutes = selectedScene.defaultMinutes
             keepSelectedSoundscapeAvailable()
+            saveSettings()
         }
     }
-    @Published var selectedSoundscape: Soundscape = .rain
-    @Published var selectedMinutes = 45
-    @Published var customMinutes = 45
-    @Published var sceneAssignments = SoundscapeSceneAssignments.defaults
+    @Published var selectedSoundscape: Soundscape = .rain { didSet { saveSettings() } }
+    @Published var selectedMinutes = 45 { didSet { saveSettings() } }
+    @Published var customMinutes = 45 { didSet { saveSettings() } }
+    @Published var sceneAssignments = SoundscapeSceneAssignments.defaults { didSet { saveSettings() } }
     @Published var lastErrorMessage: String?
 
     let audioPlayer: AudioPlayerService
@@ -21,17 +22,25 @@ final class SleepAidController: ObservableObject {
     let loginItemService: LoginItemService
     let focusIntegration: FocusIntegrationService
 
+    private let settingsStore: AppSettingsStore
+    private var isRestoringSettings = false
     private var cancellables: Set<AnyCancellable> = []
 
-    init() {
+    init(settingsStore: AppSettingsStore = AppSettingsStore()) {
+        self.settingsStore = settingsStore
         self.audioPlayer = AudioPlayerService()
         self.sleepTimer = SleepTimer()
         self.loginItemService = LoginItemService()
         self.focusIntegration = FocusIntegrationService()
 
+        restoreSettings()
         wireChildUpdates()
         focusIntegration.configure { [weak self] in
             self?.startDefaultSleepPreset()
+        }
+        ShortcutRequestCenter.shared.configure { [weak self] scene in
+            self?.chooseScene(scene)
+            self?.startQuickSession(minutes: scene.defaultMinutes)
         }
     }
 
@@ -41,7 +50,10 @@ final class SleepAidController: ObservableObject {
 
     var volume: Float {
         get { audioPlayer.volume }
-        set { audioPlayer.volume = newValue }
+        set {
+            audioPlayer.volume = newValue
+            saveSettings()
+        }
     }
 
     var remainingText: String {
@@ -56,8 +68,6 @@ final class SleepAidController: ObservableObject {
         switch playbackState {
         case .playing:
             return selectedScene.systemImage
-        case .paused:
-            return "pause.circle"
         case .error:
             return "exclamationmark.triangle"
         case .idle, .preparing:
@@ -69,6 +79,20 @@ final class SleepAidController: ObservableObject {
         let soundscape = nextSoundscape(for: selectedScene)
         selectedSoundscape = soundscape
         startSession(soundscape: soundscape, minutes: selectedMinutes)
+    }
+
+    func chooseScene(_ scene: NoiseScene) {
+        selectedScene = scene
+        if playbackState.isActive {
+            startSelectedSession()
+        }
+    }
+
+    func chooseSoundscape(_ soundscape: Soundscape) {
+        selectedSoundscape = soundscape
+        if playbackState.isActive {
+            startSession(soundscape: soundscape, minutes: selectedMinutes)
+        }
     }
 
     func startCustomSession() {
@@ -91,17 +115,6 @@ final class SleepAidController: ObservableObject {
     func stopSession(fadeOut: Bool = true) {
         sleepTimer.cancel()
         audioPlayer.stop(fadeOut: fadeOut)
-    }
-
-    func pauseOrResume() {
-        switch playbackState {
-        case .playing:
-            audioPlayer.pause()
-        case .paused:
-            audioPlayer.resume()
-        case .idle, .preparing, .error:
-            startSelectedSession()
-        }
     }
 
     func activateSleepPresetFromFocus() {
@@ -144,13 +157,7 @@ final class SleepAidController: ObservableObject {
     }
 
     private func nextSoundscape(for scene: NoiseScene) -> Soundscape {
-        let available = sceneAssignments.soundscapes(for: scene)
-
-        if scene == .focus, available.contains(selectedSoundscape) {
-            return selectedSoundscape
-        }
-
-        return available.randomElement() ?? .rain
+        SoundscapeSelector.select(for: scene, current: selectedSoundscape, assignments: sceneAssignments)
     }
 
     private func keepSelectedSoundscapeAvailable() {
@@ -159,6 +166,35 @@ final class SleepAidController: ObservableObject {
             return
         }
         selectedSoundscape = firstAvailable
+    }
+
+    private func restoreSettings() {
+        isRestoringSettings = true
+        let settings = settingsStore.load()
+        selectedScene = settings.selectedScene
+        selectedSoundscape = settings.selectedSoundscape
+        selectedMinutes = settings.selectedMinutes
+        customMinutes = settings.customMinutes
+        sceneAssignments = settings.sceneAssignments
+        volume = settings.volume
+        keepSelectedSoundscapeAvailable()
+        isRestoringSettings = false
+    }
+
+    private func saveSettings() {
+        guard !isRestoringSettings else {
+            return
+        }
+        settingsStore.save(
+            AppSettings(
+                selectedScene: selectedScene,
+                selectedSoundscape: selectedSoundscape,
+                selectedMinutes: selectedMinutes,
+                customMinutes: customMinutes,
+                volume: volume,
+                sceneAssignments: sceneAssignments
+            )
+        )
     }
 
     private func wireChildUpdates() {

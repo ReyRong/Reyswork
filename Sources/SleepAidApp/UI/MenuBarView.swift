@@ -24,17 +24,23 @@ struct MenuBarView: View {
             Divider()
 
             Button(playbackButtonTitle, systemImage: playbackButtonImage) {
-                controller.pauseOrResume()
+                if controller.playbackState.isActive {
+                    controller.stopSession(fadeOut: false)
+                } else {
+                    controller.startSelectedSession()
+                }
+            }
+
+            ForEach(NoiseScene.allCases) { scene in
+                Button("开始\(scene.displayName)", systemImage: scene.systemImage) {
+                    controller.chooseScene(scene)
+                    controller.startQuickSession(minutes: scene.defaultMinutes)
+                }
             }
 
             Button("\(controller.selectedScene.defaultMinutes) 分钟", systemImage: "timer") {
                 controller.startQuickSession(minutes: controller.selectedScene.defaultMinutes)
             }
-
-            Button("停止", systemImage: "stop.fill") {
-                controller.stopSession()
-            }
-            .disabled(!controller.playbackState.isActive)
 
             Divider()
 
@@ -60,8 +66,6 @@ struct MenuBarView: View {
                 Text("准备")
             case .playing:
                 Text("播放中")
-            case .paused:
-                Text("暂停")
             case .error:
                 Text("需要音频")
             }
@@ -73,9 +77,7 @@ struct MenuBarView: View {
     private var playbackButtonTitle: String {
         switch controller.playbackState {
         case .playing:
-            return "暂停"
-        case .paused:
-            return "继续"
+            return "停止"
         case .idle, .preparing, .error:
             return "开始"
         }
@@ -84,9 +86,7 @@ struct MenuBarView: View {
     private var playbackButtonImage: String {
         switch controller.playbackState {
         case .playing:
-            return "pause.fill"
-        case .paused:
-            return "play.fill"
+            return "stop.fill"
         case .idle, .preparing, .error:
             return "moon.zzz.fill"
         }

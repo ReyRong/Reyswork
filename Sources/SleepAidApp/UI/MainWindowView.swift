@@ -5,9 +5,21 @@ struct MainWindowView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(NoiseScene.allCases, selection: $controller.selectedScene) { scene in
-                Label(scene.displayName, systemImage: scene.systemImage)
-                    .tag(scene)
+            List(NoiseScene.allCases, selection: Binding(
+                get: { controller.selectedScene },
+                set: { scene in
+                    if let scene {
+                        controller.chooseScene(scene)
+                    }
+                }
+            )) { scene in
+                VStack(alignment: .leading, spacing: 4) {
+                    Label(scene.displayName, systemImage: scene.systemImage)
+                    Text("\(controller.sceneAssignments.soundscapes(for: scene).count) 个音景")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .tag(scene)
             }
             .navigationTitle("场景")
         } detail: {
@@ -51,7 +63,7 @@ struct MainWindowView: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
                 ForEach(controller.availableSoundscapes) { soundscape in
                     Button {
-                        controller.selectedSoundscape = soundscape
+                        controller.chooseSoundscape(soundscape)
                     } label: {
                         VStack(alignment: .leading, spacing: 10) {
                             Image(systemName: soundscape.systemImage)
@@ -81,8 +93,7 @@ struct MainWindowView: View {
 
     private var timerPanel: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("时长")
-                .font(.headline)
+            sectionHeader("时长")
 
             Picker("时长", selection: $controller.selectedMinutes) {
                 ForEach(SleepTimer.presetMinutes, id: \.self) { minutes in
@@ -112,24 +123,17 @@ struct MainWindowView: View {
 
     private var controlsPanel: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("控制")
-                .font(.headline)
+            sectionHeader("播放")
 
             HStack(spacing: 12) {
-                Button("开始\(controller.selectedScene.displayName)", systemImage: controller.selectedScene.systemImage) {
-                    controller.startSelectedSession()
+                Button(primaryPlaybackTitle, systemImage: primaryPlaybackImage) {
+                    if controller.playbackState.isActive {
+                        controller.stopSession(fadeOut: false)
+                    } else {
+                        controller.startSelectedSession()
+                    }
                 }
                 .buttonStyle(.borderedProminent)
-
-                Button(controller.playbackState == .paused ? "继续" : "暂停", systemImage: controller.playbackState == .paused ? "play.fill" : "pause.fill") {
-                    controller.pauseOrResume()
-                }
-                .disabled(!controller.playbackState.isActive)
-
-                Button("停止", systemImage: "stop.fill") {
-                    controller.stopSession()
-                }
-                .disabled(!controller.playbackState.isActive)
             }
 
             HStack {
@@ -157,8 +161,12 @@ struct MainWindowView: View {
 
     private var libraryPanel: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("媒体库用途")
-                .font(.headline)
+            VStack(alignment: .leading, spacing: 4) {
+                sectionHeader("媒体库用途")
+                Text("勾选每个白噪音适合的场景。每个场景至少会保留一个可用音景。")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
 
             VStack(spacing: 8) {
                 ForEach(Soundscape.allCases) { soundscape in
@@ -193,8 +201,7 @@ struct MainWindowView: View {
 
     private var systemPanel: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("系统")
-                .font(.headline)
+            sectionHeader("系统")
 
             Toggle(
                 isOn: Binding(
@@ -224,5 +231,18 @@ struct MainWindowView: View {
         controller.selectedSoundscape == soundscape
             ? Color.accentColor.opacity(0.16)
             : Color(nsColor: .controlBackgroundColor)
+    }
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.headline)
+    }
+
+    private var primaryPlaybackTitle: String {
+        controller.playbackState.isActive ? "停止" : "开始\(controller.selectedScene.displayName)"
+    }
+
+    private var primaryPlaybackImage: String {
+        controller.playbackState.isActive ? "stop.fill" : controller.selectedScene.systemImage
     }
 }

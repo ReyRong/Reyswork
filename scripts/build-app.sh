@@ -5,6 +5,10 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 CONFIGURATION="${CONFIGURATION:-debug}"
 APP_NAME="SleepAidApp"
 DISPLAY_NAME="白噪音"
+BUNDLE_ID="${BUNDLE_ID:-app.white-noise.local}"
+VERSION="${VERSION:-0.2.0}"
+BUILD_NUMBER="${BUILD_NUMBER:-2}"
+CODESIGN_IDENTITY="${CODESIGN_IDENTITY:--}"
 BUILD_DIR="$ROOT_DIR/build"
 APP_DIR="$BUILD_DIR/$APP_NAME.app"
 CONTENTS_DIR="$APP_DIR/Contents"
@@ -20,9 +24,12 @@ RESOURCE_BUNDLE="$(dirname "$EXECUTABLE_PATH")/${APP_NAME}_${APP_NAME}.bundle"
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
-cp "$EXECUTABLE_PATH" "$MACOS_DIR/$APP_NAME"
+cp -X "$EXECUTABLE_PATH" "$MACOS_DIR/$APP_NAME"
 if [[ -d "$RESOURCE_BUNDLE" ]]; then
-  cp -R "$RESOURCE_BUNDLE" "$RESOURCES_DIR/"
+  ditto --noextattr "$RESOURCE_BUNDLE" "$RESOURCES_DIR/$(basename "$RESOURCE_BUNDLE")"
+fi
+if [[ -f "$ROOT_DIR/Sources/SleepAidApp/Resources/AppIcon.icns" ]]; then
+  cp -X "$ROOT_DIR/Sources/SleepAidApp/Resources/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
 fi
 
 cat > "$CONTENTS_DIR/Info.plist" <<PLIST
@@ -35,7 +42,7 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
   <key>CFBundleExecutable</key>
   <string>$APP_NAME</string>
   <key>CFBundleIdentifier</key>
-  <string>local.whitenoise.app</string>
+  <string>$BUNDLE_ID</string>
   <key>CFBundleName</key>
   <string>$DISPLAY_NAME</string>
   <key>CFBundleDisplayName</key>
@@ -43,9 +50,11 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.1.0</string>
+  <string>$VERSION</string>
   <key>CFBundleVersion</key>
-  <string>1</string>
+  <string>$BUILD_NUMBER</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
   <key>LSMinimumSystemVersion</key>
   <string>13.0</string>
   <key>LSUIElement</key>
@@ -55,5 +64,14 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
 </dict>
 </plist>
 PLIST
+
+if command -v xattr >/dev/null 2>&1; then
+  xattr -cr "$APP_DIR"
+  xattr -d com.apple.FinderInfo "$APP_DIR" 2>/dev/null || true
+  xattr -d com.apple.FinderInfo "$RESOURCES_DIR/$(basename "$RESOURCE_BUNDLE")" 2>/dev/null || true
+fi
+if command -v codesign >/dev/null 2>&1; then
+  codesign --force --deep --sign "$CODESIGN_IDENTITY" "$APP_DIR" >/dev/null
+fi
 
 echo "$APP_DIR"

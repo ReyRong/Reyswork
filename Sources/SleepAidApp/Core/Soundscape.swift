@@ -1,6 +1,6 @@
 import Foundation
 
-enum NoiseScene: String, CaseIterable, Identifiable {
+enum NoiseScene: String, CaseIterable, Codable, Identifiable {
     case sleep
     case focus
 
@@ -43,7 +43,7 @@ enum NoiseScene: String, CaseIterable, Identifiable {
     }
 }
 
-enum Soundscape: String, CaseIterable, Identifiable {
+enum Soundscape: String, CaseIterable, Codable, Identifiable {
     case ocean
     case fireplace
     case rain
@@ -122,7 +122,7 @@ enum Soundscape: String, CaseIterable, Identifiable {
     }
 }
 
-struct SoundscapeSceneAssignments: Equatable {
+struct SoundscapeSceneAssignments: Codable, Equatable {
     private var mapping: [Soundscape: Set<NoiseScene>]
 
     static let defaults = SoundscapeSceneAssignments(
@@ -178,12 +178,11 @@ enum PlaybackState: Equatable {
     case idle
     case preparing
     case playing
-    case paused
     case error(String)
 
     var isActive: Bool {
         switch self {
-        case .preparing, .playing, .paused:
+        case .preparing, .playing:
             return true
         case .idle, .error:
             return false
