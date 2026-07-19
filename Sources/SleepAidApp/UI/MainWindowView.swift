@@ -14,16 +14,14 @@ struct MainWindowView: View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             sceneSidebar
         } detail: {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    nowPlayingPanel
-                    soundscapePanel
-                    libraryPanel
-                    footerBar
-                }
-                .padding(24)
-                .frame(maxWidth: 980, alignment: .leading)
+            VStack(alignment: .leading, spacing: 12) {
+                nowPlayingPanel
+                soundscapePanel
+                libraryPanel
+                footerBar
             }
+            .padding(18)
+            .frame(maxWidth: 1020, maxHeight: .infinity, alignment: .topLeading)
             .background(AppTheme.windowBackground)
         }
     }
@@ -55,7 +53,7 @@ struct MainWindowView: View {
     }
 
     private var nowPlayingPanel: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 sectionHeader("当前播放")
                 Spacer()
@@ -64,18 +62,18 @@ struct MainWindowView: View {
                 }
             }
 
-            HStack(alignment: .center, spacing: 20) {
+            HStack(alignment: .center, spacing: 16) {
                 ZStack {
                     Circle()
                         .fill(AppTheme.selectedBackground(for: colorScheme))
                     Image(systemName: controller.selectedSoundscape.systemImage)
-                        .font(.system(size: 42, weight: .semibold))
+                        .font(.system(size: 34, weight: .semibold))
                         .foregroundStyle(.tint)
                 }
-                .frame(width: 112, height: 112)
+                .frame(width: 84, height: 84)
 
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack(alignment: .top, spacing: 28) {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .top, spacing: 20) {
                         playbackMetric("当前场景", controller.selectedScene.displayName)
                         playbackMetric("当前音景", controller.selectedSoundscape.displayName)
                         playbackMetric("状态", playbackStatusText)
@@ -148,7 +146,7 @@ struct MainWindowView: View {
     }
 
     private var soundscapePanel: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 sectionHeader("当前场景音景")
                 Spacer()
@@ -164,13 +162,13 @@ struct MainWindowView: View {
                     } label: {
                         VStack(spacing: 10) {
                             Image(systemName: soundscape.systemImage)
-                                .font(.system(size: 30, weight: .medium))
+                                .font(.system(size: 26, weight: .medium))
                             Text(soundscape.displayName)
                                 .font(.headline)
                                 .lineLimit(1)
                         }
-                        .frame(maxWidth: .infinity, minHeight: 96)
-                        .padding(12)
+                        .frame(maxWidth: .infinity, minHeight: 72)
+                        .padding(10)
                     }
                     .buttonStyle(SoundscapeTileButtonStyle(isSelected: controller.selectedSoundscape == soundscape, colorScheme: colorScheme))
                 }
@@ -212,7 +210,7 @@ struct MainWindowView: View {
     }
 
     private var libraryPanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 sectionHeader("媒体库")
                 Spacer()
@@ -248,7 +246,7 @@ struct MainWindowView: View {
                         sceneAssignmentToggle(for: soundscape, scene: .focus)
                             .frame(maxWidth: .infinity)
                     }
-                    .padding(.vertical, 7)
+                    .padding(.vertical, 3)
 
                     if soundscape != Soundscape.allCases.last {
                         Divider()
@@ -256,7 +254,8 @@ struct MainWindowView: View {
                     }
                 }
             }
-            .padding(12)
+            .font(.callout)
+            .padding(8)
             .background(AppTheme.panelBackground, in: RoundedRectangle(cornerRadius: 8))
             .overlay {
                 RoundedRectangle(cornerRadius: 8)
@@ -307,11 +306,11 @@ struct MainWindowView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Text(value)
-                .font(.title3.weight(.semibold))
+                .font(.headline.weight(.semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.82)
         }
-        .frame(minWidth: 110, alignment: .leading)
+        .frame(minWidth: 100, alignment: .leading)
     }
 
     private func sceneAssignmentToggle(for soundscape: Soundscape, scene: NoiseScene) -> some View {
@@ -403,7 +402,7 @@ private struct SoundscapeTileButtonStyle: ButtonStyle {
 
 private extension View {
     func panelStyle(colorScheme: ColorScheme) -> some View {
-        padding(18)
+        padding(14)
             .background(AppTheme.windowBackground, in: RoundedRectangle(cornerRadius: 8))
             .overlay {
                 RoundedRectangle(cornerRadius: 8)
