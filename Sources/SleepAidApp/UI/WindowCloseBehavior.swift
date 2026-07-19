@@ -48,6 +48,10 @@ extension View {
     func setInitialWindowContentSize(width: CGFloat, height: CGFloat) -> some View {
         background(WindowInitialSizeInstaller(width: width, height: height))
     }
+
+    func restoreWindowContentSize(width: CGFloat, height: CGFloat, when shouldRestore: Bool) -> some View {
+        background(WindowContentSizeRestorer(width: width, height: height, shouldRestore: shouldRestore))
+    }
 }
 
 private struct WindowInitialSizeInstaller: NSViewRepresentable {
@@ -79,8 +83,59 @@ private struct WindowInitialSizeInstaller: NSViewRepresentable {
             }
 
             context.coordinator.didApplySize = true
-            window.setContentSize(NSSize(width: width, height: height))
+            window.resizeContentPreservingCenter(width: width, height: height)
             window.center()
         }
+    }
+}
+
+private struct WindowContentSizeRestorer: NSViewRepresentable {
+    let width: CGFloat
+    let height: CGFloat
+    let shouldRestore: Bool
+
+    final class Coordinator {
+        var lastShouldRestore = false
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        restoreSizeIfNeeded(for: view, context: context)
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        restoreSizeIfNeeded(for: nsView, context: context)
+    }
+
+    private func restoreSizeIfNeeded(for view: NSView, context: Context) {
+        let becameActive = shouldRestore && !context.coordinator.lastShouldRestore
+        context.coordinator.lastShouldRestore = shouldRestore
+
+        guard becameActive else {
+            return
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            view.window?.resizeContentPreservingCenter(width: width, height: height)
+        }
+    }
+}
+
+private extension NSWindow {
+    func resizeContentPreservingCenter(width: CGFloat, height: CGFloat) {
+        let currentFrame = frame
+        let center = NSPoint(x: currentFrame.midX, y: currentFrame.midY)
+        let contentRect = NSRect(origin: .zero, size: NSSize(width: width, height: height))
+        var targetFrame = frameRect(forContentRect: contentRect)
+        targetFrame.origin = NSPoint(
+            x: center.x - targetFrame.width / 2,
+            y: center.y - targetFrame.height / 2
+        )
+        setFrame(targetFrame, display: true)
     }
 }
