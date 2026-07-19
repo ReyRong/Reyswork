@@ -7,11 +7,11 @@ struct SleepAidApp: App {
     var body: some Scene {
         Window("白噪音", id: "main") {
             MainWindowView(controller: controller)
-                .frame(minWidth: 920, minHeight: 580)
-                .setInitialWindowContentSize(width: 1120, height: 580)
+                .frame(minWidth: 860, minHeight: 580)
+                .setInitialWindowContentSize(width: 980, height: 580)
                 .hideInsteadOfCloseWindow()
         }
-        .defaultSize(width: 1120, height: 580)
+        .defaultSize(width: 980, height: 580)
         .windowResizability(.contentMinSize)
         .commands {
             playbackCommands

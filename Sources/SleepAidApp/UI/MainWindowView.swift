@@ -7,7 +7,7 @@ struct MainWindowView: View {
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     private let soundscapeColumns = [
-        GridItem(.adaptive(minimum: 132), spacing: 10)
+        GridItem(.adaptive(minimum: 124), spacing: 10)
     ]
 
     var body: some View {
@@ -21,8 +21,11 @@ struct MainWindowView: View {
                     controlConsole
                 }
             }
-            .frame(maxWidth: 900, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: 760, maxHeight: .infinity, alignment: .topLeading)
             .background(AppTheme.windowBackground)
+        }
+        .onChange(of: controller.playbackState.isActive) { isActive in
+            columnVisibility = isActive ? .detailOnly : .all
         }
     }
 
@@ -123,7 +126,7 @@ struct MainWindowView: View {
             .tag(scene)
         }
         .navigationTitle("白噪音")
-        .navigationSplitViewColumnWidth(min: 160, ideal: 180, max: 210)
+        .navigationSplitViewColumnWidth(min: 150, ideal: 170, max: 190)
     }
 
     private var nowPlayingPanel: some View {
@@ -197,7 +200,7 @@ struct MainWindowView: View {
                             ),
                             in: 0...1
                         )
-                        .frame(maxWidth: 260)
+                        .frame(maxWidth: 220)
 
                         Text("\(Int(controller.volume * 100))%")
                             .font(.callout.monospacedDigit())
