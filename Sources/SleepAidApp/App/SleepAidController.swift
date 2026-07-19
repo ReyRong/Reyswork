@@ -60,7 +60,7 @@ final class SleepAidController: ObservableObject {
         if selectedScene == .focus, selectedMinutes == 0, playbackState.isActive {
             return "不限时"
         }
-        return sleepTimer.isRunning ? sleepTimer.formattedRemaining() : "--:--"
+        return sleepTimer.isRunning || sleepTimer.isPaused ? sleepTimer.formattedRemaining() : "--:--"
     }
 
     var availableSoundscapes: [Soundscape] {

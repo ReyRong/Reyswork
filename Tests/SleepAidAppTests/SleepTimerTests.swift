@@ -52,6 +52,21 @@ final class SleepTimerTests: XCTestCase {
         timer.cancel()
     }
 
+    func testFormattedRemainingStaysVisibleWhilePaused() async {
+        let timer = SleepTimer()
+
+        timer.start(duration: 20) {}
+        try? await Task.sleep(nanoseconds: 200_000_000)
+        timer.pause()
+        let pausedText = timer.formattedRemaining()
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        XCTAssertTrue(timer.isPaused)
+        XCTAssertEqual(timer.formattedRemaining(), pausedText)
+
+        timer.cancel()
+    }
+
     func testCompletionFiresAndStopsTimer() async {
         let timer = SleepTimer()
         let expectation = expectation(description: "timer completes")
