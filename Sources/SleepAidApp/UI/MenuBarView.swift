@@ -5,30 +5,23 @@ struct MenuBarView: View {
     @ObservedObject var controller: SleepAidController
     @Environment(\.openWindow) private var openWindow
 
+    private let quickMinutes = [20, 45, 90]
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label(controller.selectedScene.displayName, systemImage: controller.selectedScene.systemImage)
+            Label(controller.menuBarPresentation.title, systemImage: controller.selectedScene.systemImage)
                 .font(.headline)
 
-            Text(controller.selectedSoundscape.displayName)
+            Text(controller.menuBarPresentation.subtitle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            HStack {
-                Text(controller.remainingText)
-                    .font(.system(.title3, design: .rounded).monospacedDigit())
-                Spacer()
-                playbackBadge
-            }
+            volumeControl
 
             Divider()
 
-            Button(playbackButtonTitle, systemImage: playbackButtonImage) {
-                if controller.playbackState.isActive {
-                    controller.stopSession(fadeOut: false)
-                } else {
-                    controller.startSelectedSession()
-                }
+            Button("开始\(controller.selectedScene.displayName)", systemImage: controller.selectedScene.systemImage) {
+                controller.startSelectedSession()
             }
 
             Button(pauseResumeTitle, systemImage: pauseResumeImage) {
@@ -40,6 +33,13 @@ struct MenuBarView: View {
             }
             .disabled(!controller.playbackState.isActive)
 
+            Button("停止", systemImage: "stop.fill") {
+                controller.stopSession(fadeOut: false)
+            }
+            .disabled(!controller.playbackState.isActive)
+
+            Divider()
+
             ForEach(NoiseScene.allCases) { scene in
                 Button("开始\(scene.displayName)", systemImage: scene.systemImage) {
                     controller.chooseScene(scene)
@@ -47,8 +47,34 @@ struct MenuBarView: View {
                 }
             }
 
-            Button("\(controller.selectedScene.defaultMinutes) 分钟", systemImage: "timer") {
-                controller.startQuickSession(minutes: controller.selectedScene.defaultMinutes)
+            Divider()
+
+            Text("切换音景")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            ForEach(controller.availableSoundscapes) { soundscape in
+                Button(soundscapeMenuTitle(for: soundscape), systemImage: soundscape.systemImage) {
+                    controller.chooseSoundscape(soundscape)
+                }
+            }
+
+            Divider()
+
+            Text("时长")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if controller.selectedScene == .focus {
+                Button("不限时", systemImage: controller.selectedMinutes == 0 ? "checkmark.circle.fill" : "infinity") {
+                    controller.startQuickSession(minutes: 0)
+                }
+            }
+
+            ForEach(quickMinutes, id: \.self) { minutes in
+                Button(durationMenuTitle(for: minutes), systemImage: controller.selectedMinutes == minutes ? "checkmark.circle.fill" : "timer") {
+                    controller.startQuickSession(minutes: minutes)
+                }
             }
 
             Divider()
@@ -63,44 +89,36 @@ struct MenuBarView: View {
             }
         }
         .padding(12)
-        .frame(width: 240)
+        .frame(width: 260)
     }
 
-    private var playbackBadge: some View {
-        Group {
-            switch controller.playbackState {
-            case .idle:
-                Text("待机")
-            case .preparing:
-                Text("准备")
-            case .playing:
-                Text("播放中")
-            case .paused:
-                Text("暂停")
-            case .error:
-                Text("需要音频")
-            }
-        }
-        .font(.caption)
-        .foregroundStyle(.secondary)
-    }
-
-    private var playbackButtonTitle: String {
-        switch controller.playbackState {
-        case .playing, .paused:
-            return "停止"
-        case .idle, .preparing, .error:
-            return "开始"
+    private var volumeControl: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "speaker.wave.2")
+            Slider(
+                value: Binding(
+                    get: { Double(controller.volume) },
+                    set: { controller.volume = Float($0) }
+                ),
+                in: 0...1
+            )
+            Text("\(Int(controller.volume * 100))%")
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .frame(width: 42, alignment: .trailing)
         }
     }
 
-    private var playbackButtonImage: String {
-        switch controller.playbackState {
-        case .playing, .paused:
-            return "stop.fill"
-        case .idle, .preparing, .error:
-            return "moon.zzz.fill"
-        }
+    private func soundscapeMenuTitle(for soundscape: Soundscape) -> String {
+        controller.selectedSoundscape == soundscape
+            ? "\(soundscape.displayName) ✓"
+            : soundscape.displayName
+    }
+
+    private func durationMenuTitle(for minutes: Int) -> String {
+        controller.selectedMinutes == minutes
+            ? "\(minutes) 分钟 ✓"
+            : "\(minutes) 分钟"
     }
 
     private var pauseResumeTitle: String {

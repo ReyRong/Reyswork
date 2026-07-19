@@ -68,16 +68,16 @@ final class SleepAidController: ObservableObject {
     }
 
     var menuBarSymbol: String {
-        switch playbackState {
-        case .playing:
-            return selectedScene.systemImage
-        case .paused:
-            return "pause.circle"
-        case .error:
-            return "exclamationmark.triangle"
-        case .idle, .preparing:
-            return selectedScene.systemImage
-        }
+        menuBarPresentation.symbolName
+    }
+
+    var menuBarPresentation: MenuBarPresentation {
+        MenuBarPresentation(
+            scene: selectedScene,
+            soundscape: selectedSoundscape,
+            playbackState: playbackState,
+            remainingText: remainingText
+        )
     }
 
     func startSelectedSession() {
