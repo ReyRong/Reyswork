@@ -236,8 +236,10 @@ private struct MenuPanelButtonStyle: ButtonStyle {
             .foregroundStyle(isSelected ? Color.primary : Color.primary)
             .background(background(isPressed: configuration.isPressed), in: RoundedRectangle(cornerRadius: 8))
             .overlay {
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(border, lineWidth: isSelected ? 1 : 0.5)
+                if isSelected || colorScheme == .light {
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(border, lineWidth: isSelected ? 1 : 0.5)
+                }
             }
             .contentShape(RoundedRectangle(cornerRadius: 8))
     }

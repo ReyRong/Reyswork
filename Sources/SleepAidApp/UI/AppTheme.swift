@@ -1,6 +1,8 @@
 import SwiftUI
 
 enum AppTheme {
+    static let darkSurface = Color(red: 24 / 255, green: 24 / 255, blue: 24 / 255)
+
     static var windowBackground: Color {
         Color(nsColor: .windowBackgroundColor)
     }
@@ -14,15 +16,15 @@ enum AppTheme {
     }
 
     static func windowBackground(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? .black : Color(nsColor: .windowBackgroundColor)
+        colorScheme == .dark ? darkSurface : Color(nsColor: .windowBackgroundColor)
     }
 
     static func panelBackground(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? .black : Color(nsColor: .controlBackgroundColor)
+        colorScheme == .dark ? darkSurface : Color(nsColor: .controlBackgroundColor)
     }
 
     static func innerSurface(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color.white.opacity(0.035) : Color(nsColor: .controlBackgroundColor)
+        colorScheme == .dark ? darkSurface : Color(nsColor: .controlBackgroundColor)
     }
 
     static func selectedBackground(for colorScheme: ColorScheme) -> Color {
@@ -34,10 +36,10 @@ enum AppTheme {
     }
 
     static func neutralBorder(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color.white.opacity(0.045) : separator.opacity(0.50)
+        colorScheme == .dark ? Color.white.opacity(0.022) : separator.opacity(0.50)
     }
 
     static func divider(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color.white.opacity(0.04) : separator.opacity(0.45)
+        colorScheme == .dark ? Color.white.opacity(0.025) : separator.opacity(0.45)
     }
 }

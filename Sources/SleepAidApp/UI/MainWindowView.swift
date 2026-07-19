@@ -27,6 +27,8 @@ struct MainWindowView: View {
         .onChange(of: controller.playbackState.isActive) { isActive in
             columnVisibility = isActive ? .detailOnly : .all
         }
+        .background(AppTheme.windowBackground(for: colorScheme))
+        .toolbarBackground(AppTheme.windowBackground(for: colorScheme), for: .windowToolbar)
     }
 
     private var controlConsole: some View {
@@ -124,9 +126,12 @@ struct MainWindowView: View {
             }
             .padding(.vertical, 6)
             .tag(scene)
+            .listRowBackground(AppTheme.windowBackground(for: colorScheme))
         }
         .navigationTitle("白噪音")
         .navigationSplitViewColumnWidth(min: 150, ideal: 170, max: 190)
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.windowBackground(for: colorScheme))
     }
 
     private var nowPlayingPanel: some View {
@@ -293,7 +298,7 @@ struct MainWindowView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 0) {
+            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 4) {
                 GridRow {
                     Text("音景名称")
                         .foregroundStyle(.secondary)
@@ -306,10 +311,6 @@ struct MainWindowView: View {
                 }
                 .font(.caption)
 
-                Divider()
-                    .overlay(AppTheme.divider(for: colorScheme))
-                    .gridCellColumns(3)
-
                 ForEach(Soundscape.allCases) { soundscape in
                     GridRow {
                         Label(soundscape.displayName, systemImage: soundscape.systemImage)
@@ -321,22 +322,11 @@ struct MainWindowView: View {
                         sceneAssignmentToggle(for: soundscape, scene: .focus)
                             .frame(maxWidth: .infinity)
                     }
-                    .padding(.vertical, 2)
-
-                    if soundscape != Soundscape.allCases.last {
-                        Divider()
-                            .overlay(AppTheme.divider(for: colorScheme))
-                            .gridCellColumns(3)
-                    }
+                    .padding(.vertical, 1)
                 }
             }
             .font(.callout)
-            .padding(6)
-            .background(AppTheme.innerSurface(for: colorScheme), in: RoundedRectangle(cornerRadius: 8))
-            .overlay {
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(AppTheme.neutralBorder(for: colorScheme), lineWidth: 0.5)
-            }
+            .padding(.top, 2)
         }
         .panelStyle(colorScheme: colorScheme)
     }
@@ -534,8 +524,10 @@ private struct SoundscapeTileButtonStyle: ButtonStyle {
             .foregroundStyle(.primary)
             .background(background(isPressed: configuration.isPressed), in: RoundedRectangle(cornerRadius: 8))
             .overlay {
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(border, lineWidth: isSelected ? 1.4 : 0.6)
+                if isSelected || colorScheme == .light {
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(border, lineWidth: isSelected ? 1.2 : 0.6)
+                }
             }
             .contentShape(RoundedRectangle(cornerRadius: 8))
     }
@@ -549,7 +541,7 @@ private struct SoundscapeTileButtonStyle: ButtonStyle {
             return AppTheme.selectedBackground(for: colorScheme)
         }
 
-            return AppTheme.panelBackground(for: colorScheme)
+        return AppTheme.panelBackground(for: colorScheme)
     }
 
     private var border: Color {
@@ -564,8 +556,10 @@ private extension View {
         padding(14)
             .background(AppTheme.panelBackground(for: colorScheme), in: RoundedRectangle(cornerRadius: 8))
             .overlay {
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(AppTheme.neutralBorder(for: colorScheme), lineWidth: colorScheme == .dark ? 0.35 : 0.6)
+                if colorScheme == .light {
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(AppTheme.neutralBorder(for: colorScheme), lineWidth: 0.6)
+                }
             }
     }
 }
