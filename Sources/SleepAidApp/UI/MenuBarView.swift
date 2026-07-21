@@ -157,7 +157,7 @@ struct MenuBarView: View {
         HStack(spacing: 8) {
             Button {
                 openWindow(id: "main")
-                NSApplication.shared.activate(ignoringOtherApps: true)
+                MainWindowDockPresenter.showDock()
             } label: {
                 Label("主界面", systemImage: "macwindow")
                     .frame(maxWidth: .infinity)
@@ -166,7 +166,7 @@ struct MenuBarView: View {
 
             Button {
                 openWindow(id: "settings")
-                NSApplication.shared.activate(ignoringOtherApps: true)
+                MainWindowDockPresenter.showDock()
             } label: {
                 Image(systemName: "gearshape")
                     .frame(width: 28)

@@ -1,9 +1,42 @@
 import AppKit
 import SwiftUI
 
+protocol DockVisibilityControlling: AnyObject {
+    func hideDockIcon()
+    func showDockIcon()
+}
+
+final class AppDockVisibilityController: DockVisibilityControlling {
+    func hideDockIcon() {
+        Task { @MainActor in
+            NSApplication.shared.setActivationPolicy(.accessory)
+        }
+    }
+
+    func showDockIcon() {
+        Task { @MainActor in
+            NSApplication.shared.setActivationPolicy(.regular)
+            NSApplication.shared.activate(ignoringOtherApps: true)
+        }
+    }
+}
+
+enum MainWindowDockPresenter {
+    static func showDock(dockVisibility: DockVisibilityControlling = AppDockVisibilityController()) {
+        dockVisibility.showDockIcon()
+    }
+}
+
 final class HideInsteadOfCloseWindowDelegate: NSObject, NSWindowDelegate {
+    private let dockVisibility: DockVisibilityControlling
+
+    init(dockVisibility: DockVisibilityControlling = AppDockVisibilityController()) {
+        self.dockVisibility = dockVisibility
+    }
+
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         sender.orderOut(nil)
+        dockVisibility.hideDockIcon()
         return false
     }
 }
