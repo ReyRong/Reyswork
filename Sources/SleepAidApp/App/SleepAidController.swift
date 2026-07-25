@@ -28,11 +28,16 @@ final class SleepAidController: ObservableObject {
     let focusIntegration: FocusIntegrationService
 
     private let settingsStore: AppSettingsStore
+    private let shortcutStatusStore: ShortcutStatusStore
     private var isRestoringSettings = false
     private var cancellables: Set<AnyCancellable> = []
 
-    init(settingsStore: AppSettingsStore = AppSettingsStore()) {
+    init(
+        settingsStore: AppSettingsStore = AppSettingsStore(),
+        shortcutStatusStore: ShortcutStatusStore = ShortcutStatusStore()
+    ) {
         self.settingsStore = settingsStore
+        self.shortcutStatusStore = shortcutStatusStore
         self.audioPlayer = AudioPlayerService()
         self.sleepTimer = SleepTimer()
         self.loginItemService = LoginItemService()
@@ -43,23 +48,7 @@ final class SleepAidController: ObservableObject {
         focusIntegration.configure { [weak self] in
             self?.startDefaultSleepPreset()
         }
-        ShortcutRequestCenter.shared.configure { [weak self] command in
-            guard let self else {
-                return ShortcutCommandResponse(
-                    dialog: "白噪音还没有准备好，请先打开应用。",
-                    snapshot: ShortcutSessionSnapshot(
-                        scene: .sleep,
-                        soundscape: .rain,
-                        playbackState: .idle,
-                        remainingText: "--:--",
-                        selectedMinutes: NoiseScene.sleep.defaultMinutes,
-                        volume: 0.55
-                    )
-                )
-            }
-
-            return self.handleShortcutCommand(command)
-        }
+        saveShortcutStatus()
     }
 
     var playbackState: PlaybackState {
@@ -182,35 +171,50 @@ final class SleepAidController: ObservableObject {
         let dialog: String
 
         switch command {
-        case let .start(scene):
-            chooseScene(scene)
-            startQuickSession(minutes: selectedMinutes)
-            dialog = "已开始\(scene.displayName)白噪音"
-        case .pause:
-            pauseSession()
-            dialog = "已暂停白噪音"
-        case .resume:
-            resumeSession()
-            dialog = "已继续白噪音"
+        case .startSleep:
+            selectedScene = .sleep
+            let soundscape = currentSoundscape(for: .sleep)
+            selectedSoundscape = soundscape
+            startSession(soundscape: soundscape, minutes: selectedMinutes)
+            dialog = "已开始助眠白噪音"
+        case .startSleepRandom:
+            selectedScene = .sleep
+            let soundscape = nextSoundscape(for: .sleep)
+            selectedSoundscape = soundscape
+            startSession(soundscape: soundscape, minutes: selectedMinutes)
+            dialog = "已随机播放助眠白噪音"
+        case .togglePause:
+            if playbackState == .paused {
+                resumeSession()
+                dialog = "已继续白噪音"
+            } else if playbackState.isActive {
+                pauseSession()
+                dialog = "已暂停白噪音"
+            } else {
+                dialog = "当前没有正在播放的白噪音"
+            }
         case .stop:
             stopSession(fadeOut: false)
             dialog = "已停止白噪音"
-        case let .switchSoundscape(soundscape):
-            chooseSoundscape(soundscape)
-            dialog = "已切换到\(soundscape.displayName)"
-        case let .setDuration(minutes):
-            let clampedMinutes = ShortcutCommand.setDuration(minutes: minutes).clampedMinutes ?? minutes
-            selectedMinutes = clampedMinutes
-            customMinutes = clampedMinutes
-            if playbackState.isActive {
-                startSession(soundscape: selectedSoundscape, minutes: clampedMinutes)
-            }
-            dialog = clampedMinutes == 0 ? "已设置为不限时" : "已设置为 \(clampedMinutes) 分钟"
         case .queryStatus:
             dialog = currentShortcutSnapshot.summary
         }
 
+        saveShortcutStatus()
         return ShortcutCommandResponse(dialog: dialog, snapshot: currentShortcutSnapshot)
+    }
+
+    func handleShortcutURL(_ url: URL) -> ShortcutCommandResponse? {
+        guard let command = ShortcutURLCommand(url: url) else {
+            return nil
+        }
+
+        return handleShortcutCommand(command.shortcutCommand)
+    }
+
+    func prepareForTermination() {
+        stopSession(fadeOut: false)
+        saveShortcutStatus()
     }
 
     var currentShortcutSnapshot: ShortcutSessionSnapshot {
@@ -227,10 +231,12 @@ final class SleepAidController: ObservableObject {
     private func startSession(soundscape: Soundscape, minutes: Int) {
         lastErrorMessage = nil
         audioPlayer.play(soundscape: soundscape, volume: volume)
+        saveShortcutStatus()
 
         if case let .error(message) = audioPlayer.state {
             sleepTimer.cancel()
             lastErrorMessage = message
+            saveShortcutStatus()
             return
         }
 
@@ -241,6 +247,7 @@ final class SleepAidController: ObservableObject {
         } else {
             sleepTimer.cancel()
         }
+        saveShortcutStatus()
     }
 
     private func startDefaultSleepPreset() {
@@ -307,11 +314,17 @@ final class SleepAidController: ObservableObject {
 
     private func wireChildUpdates() {
         audioPlayer.objectWillChange
-            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+                self?.saveShortcutStatus()
+            }
             .store(in: &cancellables)
 
         sleepTimer.objectWillChange
-            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+                self?.saveShortcutStatus()
+            }
             .store(in: &cancellables)
 
         loginItemService.objectWillChange
@@ -321,5 +334,9 @@ final class SleepAidController: ObservableObject {
         focusIntegration.objectWillChange
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
+    }
+
+    private func saveShortcutStatus() {
+        shortcutStatusStore.save(currentShortcutSnapshot.summary)
     }
 }

@@ -123,3 +123,101 @@
 - The currently observed shortcut discovery failure is a product signal, not just a bug: system integrations require the project to use the correct native app packaging path.
 - After Xcode target migration, the next verification should be: installed app launches, menu bar appears, audio resources play, login item status is accurate, shortcuts appear in macOS Shortcuts, and close-to-menu-bar behavior remains intact.
 - The issue tracker and triage label vocabulary were not available in this workspace context, so this spec is stored as a project document rather than being published to an issue tracker.
+
+# 快捷指令通信 v1 规格
+
+## Problem Statement
+
+用户已经可以在 macOS 快捷指令中看到“白噪音”相关动作，但运行时出现“快捷指令与白噪音无法通信”。这说明问题不只是动作是否可发现，而是快捷指令运行时无法可靠地把命令交给正在运行或将要启动的 app。
+
+当前实现让 AppIntent 直接调用 app 内部的进程内请求中心。这种方式依赖 AppIntent 和 SwiftUI app controller 处在同一个已初始化进程里。一旦快捷指令由系统后台 runner 执行，或 app 尚未完成初始化，动作就可能存在但无法真正触发白噪音播放、暂停、停止或状态查询。
+
+用户需要一个 v1 可落地的快捷指令通信方案：动作数量保持克制，执行路径稳定，app 不主动弹出主窗口，且可以在 app 未启动时唤起 app 并执行命令。
+
+## Solution
+
+快捷指令 v1 改为 URL Scheme 通信。AppIntent 不再把命令直接发给进程内 singleton，而是打开一个 `whitenoise://` URL。白噪音 app 在启动或运行中接收 URL，并由 app 内部 controller 执行对应命令。
+
+从用户角度看，快捷指令仍然是“白噪音”的原生动作；从系统角度看，动作执行路径变为：
+
+`快捷指令 AppIntent -> 打开 whitenoise:// URL -> 白噪音 app 接收 URL -> 执行播放控制`
+
+快捷指令执行时只唤起 app 或菜单栏，不主动显示主窗口。成功或失败通过快捷指令返回文本表达。v1 不暴露时长、音景、音量等参数，只提供固定动作，减少自动化入口复杂度。
+
+## User Stories
+
+1. As a shortcuts user, I want Shortcuts actions to communicate reliably with White Noise, so that my automations do not fail after the app is installed.
+2. As a sleep user, I want a “start sleep” shortcut action, so that I can begin my current sleep soundscape from Shortcuts.
+3. As a sleep user, I want a “random sleep soundscape” shortcut action, so that the app can reduce my choices before bed.
+4. As a sleep user, I want random sleep soundscape selection to use only soundscapes I marked for sleep, so that stimulating focus sounds are not selected at night.
+5. As a user, I want a single “pause or resume” shortcut action, so that I do not need to decide which control belongs in an automation.
+6. As a user, I want the pause-or-resume shortcut to pause when white noise is playing, so that I can temporarily stop sound.
+7. As a user, I want the pause-or-resume shortcut to resume when white noise is paused, so that I can continue without rebuilding the session.
+8. As a user, I want the pause-or-resume shortcut to avoid starting playback when nothing is active, so that the action does not unexpectedly create sound.
+9. As a user, I want a “stop white noise” shortcut action, so that I can end audio and countdown from automation.
+10. As a user, I want a “query status” shortcut action, so that I can know whether the app is playing, paused, or idle.
+11. As a user, I want the status shortcut to return only a simple playback state, so that it is readable in notifications and automations.
+12. As a user, I want shortcut actions to work even when the app is not already open, so that automation feels dependable.
+13. As a user, I want shortcut actions to avoid opening the main window, so that sleep and focus flows remain low-interruption.
+14. As a user, I want shortcut actions to keep the menu-bar utility feeling, so that app automation does not feel like launching a full workspace.
+15. As a user, I want shortcut actions to use the installed app identity, so that old development builds do not intercept commands.
+16. As a user, I want old shortcut actions created before the Bundle ID change to be replaceable with clean new actions, so that stale references do not keep failing.
+17. As a developer, I want shortcut commands to travel through an explicit URL command boundary, so that AppIntent runtime behavior is easier to debug.
+18. As a developer, I want URL commands to be parsed into the same controller-level command model used by the app, so that behavior remains consistent.
+19. As a developer, I want shortcut command tests at the app command seam, so that the tests verify user-visible behavior rather than SwiftUI layout details.
+20. As a developer, I want URL route tests for all supported shortcut URLs, so that unsupported or misspelled URLs fail predictably.
+
+## Implementation Decisions
+
+- v1 shortcut communication uses a custom URL Scheme rather than direct in-process singleton dispatch.
+- The app registers the `whitenoise` URL Scheme in its app metadata.
+- The SwiftUI app scene receives shortcut URLs and forwards them to the app controller.
+- The controller executes shortcut commands without requiring the main window to be visible.
+- Shortcut execution should not actively present the main window.
+- AppIntent actions open the appropriate URL and return a concise dialog result.
+- v1 exposes five shortcut actions: start sleep, random sleep soundscape, pause or resume, stop, and query status.
+- v1 removes the start focus shortcut action from the immediate shortcut surface.
+- v1 combines pause and resume into a single toggle-style action.
+- v1 query status returns only one of three user-facing states: playing, paused, or idle.
+- Start sleep uses the current selected sleep soundscape.
+- Random sleep soundscape selects only from soundscapes assigned to the sleep scene.
+- Stop ends playback and cancels any running countdown.
+- Pause or resume does not start playback when the app is idle.
+- v1 does not expose URL parameters for duration, soundscape, scene, or volume.
+- The planned URL routes are:
+  - `whitenoise://shortcut/start-sleep`
+  - `whitenoise://shortcut/start-sleep-random`
+  - `whitenoise://shortcut/toggle-pause`
+  - `whitenoise://shortcut/stop`
+  - `whitenoise://shortcut/status`
+- The local install process must keep LaunchServices registration clean so Shortcuts does not bind to old Bundle IDs or temporary build products.
+- Existing shortcuts created before the Bundle ID migration may need to be rebuilt by deleting old shortcut action blocks and adding new ones.
+
+## Testing Decisions
+
+- The highest test seam is the controller-level shortcut command behavior, because it represents what the user expects regardless of whether the command came from UI, menu bar, AppIntent, or URL.
+- Add or keep tests proving start sleep uses the current sleep soundscape.
+- Add or keep tests proving random sleep selects only from the sleep soundscape pool.
+- Add tests proving pause-or-resume pauses active playback, resumes paused playback, and does not start idle playback.
+- Add tests proving stop cancels playback and timer state.
+- Add tests proving query status returns only playing, paused, or idle.
+- Add URL parsing tests for every v1 shortcut URL.
+- Add app metadata tests proving the `whitenoise` URL Scheme is registered.
+- Keep LaunchServices install-script tests so local development does not reintroduce duplicate app registrations.
+- System discovery in the macOS Shortcuts app remains a manual verification step because it depends on installed app registration and system indexing.
+
+## Out of Scope
+
+- Start focus as a shortcut action is out of scope for shortcut v1.
+- Shortcut parameters for duration, soundscape, scene, volume, or fade behavior are out of scope for shortcut v1.
+- Dynamic shortcut entities for user-imported audio are out of scope.
+- A background XPC service, App Group command queue, or full automation service architecture is out of scope for shortcut v1.
+- Private APIs for macOS Focus mode remain out of scope.
+- Automatically repairing user-created shortcuts that still reference old Bundle IDs is out of scope; users may need to replace old action blocks.
+
+## Further Notes
+
+- This spec deliberately keeps shortcut v1 smaller than the app's full product model. The app can remain both sleep and focus oriented while the first reliable shortcut surface focuses on sleep automation.
+- URL Scheme communication is chosen because it is explicit, testable, and suitable for a local macOS utility at this stage.
+- If shortcut reliability still fails after URL Scheme migration, the next architectural question should be whether a signed helper, App Group, or XPC boundary is needed.
+- The issue tracker and triage label vocabulary were not available in this workspace context, so this shortcut communication spec is stored in the project document rather than being published to an issue tracker.

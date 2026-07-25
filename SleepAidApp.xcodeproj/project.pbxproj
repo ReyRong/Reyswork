@@ -18,8 +18,9 @@
 		000000000000000000010009 /* FocusIntegrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000020009 /* FocusIntegrationService.swift */; };
 		000000000000000000010010 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000020010 /* LoginItemService.swift */; };
 		000000000000000000010011 /* ShortcutCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000020011 /* ShortcutCommand.swift */; };
-		000000000000000000010012 /* ShortcutRequestCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000020012 /* ShortcutRequestCenter.swift */; };
 		000000000000000000010013 /* WhiteNoiseIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000020013 /* WhiteNoiseIntents.swift */; };
+		000000000000000000010029 /* ShortcutURLCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000020029 /* ShortcutURLCommand.swift */; };
+		000000000000000000010030 /* ShortcutStatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000020030 /* ShortcutStatusStore.swift */; };
 		000000000000000000010014 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000020014 /* AppTheme.swift */; };
 		000000000000000000010015 /* MainWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000020015 /* MainWindowView.swift */; };
 		000000000000000000010016 /* MenuBarPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000020016 /* MenuBarPresentation.swift */; };
@@ -48,8 +49,9 @@
 		000000000000000000020009 /* FocusIntegrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusIntegrationService.swift; sourceTree = "<group>"; };
 		000000000000000000020010 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
 		000000000000000000020011 /* ShortcutCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutCommand.swift; sourceTree = "<group>"; };
-		000000000000000000020012 /* ShortcutRequestCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRequestCenter.swift; sourceTree = "<group>"; };
 		000000000000000000020013 /* WhiteNoiseIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhiteNoiseIntents.swift; sourceTree = "<group>"; };
+		000000000000000000020029 /* ShortcutURLCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutURLCommand.swift; sourceTree = "<group>"; };
+		000000000000000000020030 /* ShortcutStatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutStatusStore.swift; sourceTree = "<group>"; };
 		000000000000000000020014 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		000000000000000000020015 /* MainWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowView.swift; sourceTree = "<group>"; };
 		000000000000000000020016 /* MenuBarPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPresentation.swift; sourceTree = "<group>"; };
@@ -134,7 +136,8 @@
 				000000000000000000020009 /* FocusIntegrationService.swift */,
 				000000000000000000020010 /* LoginItemService.swift */,
 				000000000000000000020011 /* ShortcutCommand.swift */,
-				000000000000000000020012 /* ShortcutRequestCenter.swift */,
+				000000000000000000020030 /* ShortcutStatusStore.swift */,
+				000000000000000000020029 /* ShortcutURLCommand.swift */,
 				000000000000000000020013 /* WhiteNoiseIntents.swift */,
 			);
 			path = System;
@@ -271,7 +274,8 @@
 				000000000000000000010009 /* FocusIntegrationService.swift in Sources */,
 				000000000000000000010010 /* LoginItemService.swift in Sources */,
 				000000000000000000010011 /* ShortcutCommand.swift in Sources */,
-				000000000000000000010012 /* ShortcutRequestCenter.swift in Sources */,
+				000000000000000000010030 /* ShortcutStatusStore.swift in Sources */,
+				000000000000000000010029 /* ShortcutURLCommand.swift in Sources */,
 				000000000000000000010013 /* WhiteNoiseIntents.swift in Sources */,
 				000000000000000000010014 /* AppTheme.swift in Sources */,
 				000000000000000000010015 /* MainWindowView.swift in Sources */,

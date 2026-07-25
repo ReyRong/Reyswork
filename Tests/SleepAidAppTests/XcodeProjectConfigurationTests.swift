@@ -8,8 +8,17 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         XCTAssertTrue(project.contains("PRODUCT_BUNDLE_IDENTIFIER = com.rey.whitenoise;"))
         XCTAssertTrue(project.contains("GENERATE_INFOPLIST_FILE = NO;"))
         XCTAssertTrue(project.contains("INFOPLIST_FILE = Sources/SleepAidApp/App/Info.plist;"))
-        XCTAssertEqual(try readInfoPlistValue(forKey: "CFBundleDisplayName"), "白噪音")
-        XCTAssertEqual(try readInfoPlistValue(forKey: "CFBundleName"), "白噪音")
+        XCTAssertEqual(try readInfoPlistValue(forKey: "CFBundleDisplayName") as? String, "白噪音")
+        XCTAssertEqual(try readInfoPlistValue(forKey: "CFBundleName") as? String, "白噪音")
+    }
+
+    func testNativeMacAppRegistersWhiteNoiseURLScheme() throws {
+        let urlTypes = try readInfoPlistValue(forKey: "CFBundleURLTypes") as? [[String: Any]]
+        let schemes = urlTypes?
+            .compactMap { $0["CFBundleURLSchemes"] as? [String] }
+            .flatMap { $0 }
+
+        XCTAssertEqual(schemes, ["whitenoise"])
     }
 
     func testNativeMacAppProjectOwnsSourcesAndAudioResources() throws {
@@ -17,6 +26,8 @@ final class XcodeProjectConfigurationTests: XCTestCase {
 
         XCTAssertTrue(project.contains("SleepAidApp.swift"))
         XCTAssertTrue(project.contains("WhiteNoiseIntents.swift"))
+        XCTAssertTrue(project.contains("ShortcutURLCommand.swift"))
+        XCTAssertTrue(project.contains("ShortcutStatusStore.swift"))
         XCTAssertTrue(project.contains("cafe.m4a"))
         XCTAssertTrue(project.contains("library.m4a"))
         XCTAssertTrue(project.contains("summer-night.m4a"))
@@ -40,7 +51,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         return try String(contentsOf: projectURL, encoding: .utf8)
     }
 
-    private func readInfoPlistValue(forKey key: String) throws -> String? {
+    private func readInfoPlistValue(forKey key: String) throws -> Any? {
         let plistURL = repositoryRoot()
             .appendingPathComponent("Sources")
             .appendingPathComponent("SleepAidApp")
@@ -51,7 +62,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
             options: [],
             format: nil
         )
-        return (plist as? [String: Any])?[key] as? String
+        return (plist as? [String: Any])?[key]
     }
 
     private func repositoryRoot() -> URL {

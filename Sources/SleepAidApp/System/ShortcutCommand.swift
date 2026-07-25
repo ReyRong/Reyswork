@@ -1,25 +1,11 @@
 import Foundation
 
 enum ShortcutCommand: Equatable {
-    case start(scene: NoiseScene)
-    case pause
-    case resume
+    case startSleep
+    case startSleepRandom
+    case togglePause
     case stop
-    case switchSoundscape(Soundscape)
-    case setDuration(minutes: Int)
     case queryStatus
-
-    var clampedMinutes: Int? {
-        guard case let .setDuration(minutes) = self else {
-            return nil
-        }
-
-        if minutes == 0 {
-            return 0
-        }
-
-        return min(max(minutes, 1), 480)
-    }
 }
 
 struct ShortcutSessionSnapshot: Equatable {
@@ -31,22 +17,7 @@ struct ShortcutSessionSnapshot: Equatable {
     let volume: Float
 
     var summary: String {
-        [
-            scene.displayName,
-            soundscape.displayName,
-            playbackState.shortcutDisplayName,
-            remainingPhrase,
-            "音量 \(Int((volume * 100).rounded()))%"
-        ]
-        .joined(separator: " · ")
-    }
-
-    private var remainingPhrase: String {
-        if selectedMinutes == 0 {
-            return "不限时"
-        }
-
-        return "剩余 \(remainingText)"
+        playbackState.shortcutDisplayName
     }
 }
 
@@ -58,16 +29,12 @@ struct ShortcutCommandResponse: Equatable {
 extension PlaybackState {
     var shortcutDisplayName: String {
         switch self {
-        case .idle:
-            return "待机"
-        case .preparing:
-            return "准备中"
-        case .playing:
-            return "播放中"
+        case .idle, .error:
+            return "未播放"
+        case .preparing, .playing:
+            return "正在播放"
         case .paused:
             return "已暂停"
-        case .error:
-            return "出错"
         }
     }
 }

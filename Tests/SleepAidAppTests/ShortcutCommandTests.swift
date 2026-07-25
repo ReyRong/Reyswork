@@ -2,7 +2,7 @@ import XCTest
 @testable import SleepAidApp
 
 final class ShortcutCommandTests: XCTestCase {
-    func testShortcutStatusSummaryIncludesSceneSoundscapeStateAndRemainingTime() {
+    func testShortcutStatusSummaryUsesMinimalPlaybackState() {
         let snapshot = ShortcutSessionSnapshot(
             scene: .focus,
             soundscape: .library,
@@ -12,17 +12,28 @@ final class ShortcutCommandTests: XCTestCase {
             volume: 0.62
         )
 
-        XCTAssertEqual(snapshot.summary, "专注 · 图书馆氛围 · 已暂停 · 剩余 18:20 · 音量 62%")
+        XCTAssertEqual(snapshot.summary, "已暂停")
     }
 
-    func testShortcutDurationClampsToSupportedRange() {
-        XCTAssertEqual(ShortcutCommand.setDuration(minutes: -8).clampedMinutes, 1)
-        XCTAssertEqual(ShortcutCommand.setDuration(minutes: 0).clampedMinutes, 0)
-        XCTAssertEqual(ShortcutCommand.setDuration(minutes: 999).clampedMinutes, 480)
-        XCTAssertEqual(ShortcutCommand.setDuration(minutes: 25).clampedMinutes, 25)
+    func testShortcutStatusSummaryDistinguishesIdlePlayingAndPaused() {
+        XCTAssertEqual(shortcutSummary(for: .idle), "未播放")
+        XCTAssertEqual(shortcutSummary(for: .preparing), "正在播放")
+        XCTAssertEqual(shortcutSummary(for: .playing), "正在播放")
+        XCTAssertEqual(shortcutSummary(for: .paused), "已暂停")
     }
 
-    func testAppShortcutsExposeAllUserActions() {
-        XCTAssertEqual(WhiteNoiseShortcuts.appShortcuts.count, 8)
+    func testAppShortcutsExposeV1UserActions() {
+        XCTAssertEqual(WhiteNoiseShortcuts.appShortcuts.count, 5)
+    }
+
+    private func shortcutSummary(for playbackState: PlaybackState) -> String {
+        ShortcutSessionSnapshot(
+            scene: .sleep,
+            soundscape: .rain,
+            playbackState: playbackState,
+            remainingText: "--:--",
+            selectedMinutes: 45,
+            volume: 0.55
+        ).summary
     }
 }

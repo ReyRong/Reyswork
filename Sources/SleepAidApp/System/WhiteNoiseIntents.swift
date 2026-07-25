@@ -1,133 +1,59 @@
 import AppIntents
+import AppKit
 import Foundation
-
-enum SoundscapeShortcutOption: String, AppEnum {
-    case ocean
-    case fireplace
-    case rain
-    case summerNight
-    case cafe
-    case library
-
-    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "音景")
-    static let caseDisplayRepresentations: [SoundscapeShortcutOption: DisplayRepresentation] = [
-        .ocean: "沙滩海声",
-        .fireplace: "壁炉柴火",
-        .rain: "淅淅雨声",
-        .summerNight: "虫鸣夏夜",
-        .cafe: "咖啡厅环境",
-        .library: "图书馆氛围"
-    ]
-
-    var soundscape: Soundscape {
-        switch self {
-        case .ocean:
-            return .ocean
-        case .fireplace:
-            return .fireplace
-        case .rain:
-            return .rain
-        case .summerNight:
-            return .summerNight
-        case .cafe:
-            return .cafe
-        case .library:
-            return .library
-        }
-    }
-}
 
 struct StartSleepNoiseIntent: AppIntent {
     static let title: LocalizedStringResource = "开始助眠白噪音"
-    static let description = IntentDescription("从助眠音景池随机播放一段白噪音。")
-    static let openAppWhenRun = true
+    static let description = IntentDescription("使用当前助眠音景开始播放白噪音。")
+    static let openAppWhenRun = false
 
     func perform() async throws -> some IntentResult {
-        let response = await ShortcutRequestCenter.shared.request(.start(scene: .sleep))
-        return .result(dialog: IntentDialog(stringLiteral: response.dialog))
+        await ShortcutURLRunner.open(.startSleep)
+        return .result(dialog: "已开始助眠白噪音")
     }
 }
 
-struct StartFocusNoiseIntent: AppIntent {
-    static let title: LocalizedStringResource = "开始专注白噪音"
-    static let description = IntentDescription("播放当前专注场景的白噪音。")
-    static let openAppWhenRun = true
+struct StartRandomSleepNoiseIntent: AppIntent {
+    static let title: LocalizedStringResource = "助眠白噪音随机"
+    static let description = IntentDescription("从已选择为助眠的白噪音中随机播放。")
+    static let openAppWhenRun = false
 
     func perform() async throws -> some IntentResult {
-        let response = await ShortcutRequestCenter.shared.request(.start(scene: .focus))
-        return .result(dialog: IntentDialog(stringLiteral: response.dialog))
+        await ShortcutURLRunner.open(.startSleepRandom)
+        return .result(dialog: "已随机播放助眠白噪音")
     }
 }
 
-struct PauseWhiteNoiseIntent: AppIntent {
-    static let title: LocalizedStringResource = "暂停白噪音"
-    static let description = IntentDescription("暂停当前播放的白噪音。")
-    static let openAppWhenRun = true
+struct ToggleWhiteNoisePauseIntent: AppIntent {
+    static let title: LocalizedStringResource = "暂停或继续白噪音"
+    static let description = IntentDescription("播放时暂停，暂停时继续，未播放时不自动开始。")
+    static let openAppWhenRun = false
 
     func perform() async throws -> some IntentResult {
-        let response = await ShortcutRequestCenter.shared.request(.pause)
-        return .result(dialog: IntentDialog(stringLiteral: response.dialog))
-    }
-}
-
-struct ResumeWhiteNoiseIntent: AppIntent {
-    static let title: LocalizedStringResource = "继续白噪音"
-    static let description = IntentDescription("继续当前暂停的白噪音。")
-    static let openAppWhenRun = true
-
-    func perform() async throws -> some IntentResult {
-        let response = await ShortcutRequestCenter.shared.request(.resume)
-        return .result(dialog: IntentDialog(stringLiteral: response.dialog))
+        await ShortcutURLRunner.open(.togglePause)
+        return .result(dialog: "已发送暂停或继续指令")
     }
 }
 
 struct StopWhiteNoiseIntent: AppIntent {
     static let title: LocalizedStringResource = "停止白噪音"
     static let description = IntentDescription("立即停止当前播放的白噪音。")
-    static let openAppWhenRun = true
+    static let openAppWhenRun = false
 
     func perform() async throws -> some IntentResult {
-        let response = await ShortcutRequestCenter.shared.request(.stop)
-        return .result(dialog: IntentDialog(stringLiteral: response.dialog))
-    }
-}
-
-struct SetWhiteNoiseDurationIntent: AppIntent {
-    static let title: LocalizedStringResource = "设置白噪音时长"
-    static let description = IntentDescription("设置当前白噪音时长，0 表示不限时，范围为 0 到 480 分钟。")
-    static let openAppWhenRun = true
-
-    @Parameter(title: "分钟", default: 45)
-    var minutes: Int
-
-    func perform() async throws -> some IntentResult {
-        let response = await ShortcutRequestCenter.shared.request(.setDuration(minutes: minutes))
-        return .result(dialog: IntentDialog(stringLiteral: response.dialog))
-    }
-}
-
-struct SwitchWhiteNoiseSoundscapeIntent: AppIntent {
-    static let title: LocalizedStringResource = "切换白噪音音景"
-    static let description = IntentDescription("切换到指定白噪音音景。")
-    static let openAppWhenRun = true
-
-    @Parameter(title: "音景")
-    var soundscape: SoundscapeShortcutOption
-
-    func perform() async throws -> some IntentResult {
-        let response = await ShortcutRequestCenter.shared.request(.switchSoundscape(soundscape.soundscape))
-        return .result(dialog: IntentDialog(stringLiteral: response.dialog))
+        await ShortcutURLRunner.open(.stop)
+        return .result(dialog: "已停止白噪音")
     }
 }
 
 struct QueryWhiteNoiseStatusIntent: AppIntent {
     static let title: LocalizedStringResource = "查询白噪音状态"
-    static let description = IntentDescription("返回当前场景、音景、播放状态、剩余时间和音量。")
-    static let openAppWhenRun = true
+    static let description = IntentDescription("返回白噪音当前是否正在播放、已暂停或未播放。")
+    static let openAppWhenRun = false
 
     func perform() async throws -> some IntentResult {
-        let response = await ShortcutRequestCenter.shared.request(.queryStatus)
-        return .result(dialog: IntentDialog(stringLiteral: response.dialog))
+        let status = ShortcutStatusStore().load()
+        return .result(dialog: IntentDialog(stringLiteral: status))
     }
 }
 
@@ -144,33 +70,23 @@ struct WhiteNoiseShortcuts: AppShortcutsProvider {
         )
 
         AppShortcut(
-            intent: StartFocusNoiseIntent(),
+            intent: StartRandomSleepNoiseIntent(),
             phrases: [
-                "开始\(.applicationName)专注",
-                "播放\(.applicationName)专注白噪音"
+                "随机播放\(.applicationName)助眠",
+                "随机\(.applicationName)助眠白噪音"
             ],
-            shortTitle: "开始专注",
-            systemImageName: "target"
+            shortTitle: "助眠随机",
+            systemImageName: "shuffle"
         )
 
         AppShortcut(
-            intent: PauseWhiteNoiseIntent(),
+            intent: ToggleWhiteNoisePauseIntent(),
             phrases: [
-                "暂停\(.applicationName)",
-                "暂停\(.applicationName)白噪音"
+                "暂停或继续\(.applicationName)",
+                "切换\(.applicationName)播放状态"
             ],
-            shortTitle: "暂停",
-            systemImageName: "pause.fill"
-        )
-
-        AppShortcut(
-            intent: ResumeWhiteNoiseIntent(),
-            phrases: [
-                "继续\(.applicationName)",
-                "继续\(.applicationName)白噪音"
-            ],
-            shortTitle: "继续",
-            systemImageName: "play.fill"
+            shortTitle: "暂停或继续",
+            systemImageName: "playpause.fill"
         )
 
         AppShortcut(
@@ -184,33 +100,21 @@ struct WhiteNoiseShortcuts: AppShortcutsProvider {
         )
 
         AppShortcut(
-            intent: SetWhiteNoiseDurationIntent(),
-            phrases: [
-                "设置\(.applicationName)时长",
-                "设置\(.applicationName)白噪音时长"
-            ],
-            shortTitle: "设置时长",
-            systemImageName: "timer"
-        )
-
-        AppShortcut(
-            intent: SwitchWhiteNoiseSoundscapeIntent(),
-            phrases: [
-                "切换\(.applicationName)音景",
-                "切换\(.applicationName)白噪音"
-            ],
-            shortTitle: "切换音景",
-            systemImageName: "speaker.wave.2.fill"
-        )
-
-        AppShortcut(
             intent: QueryWhiteNoiseStatusIntent(),
             phrases: [
                 "查询\(.applicationName)状态",
-                "\(.applicationName)现在在播放什么"
+                "\(.applicationName)现在在播放吗"
             ],
             shortTitle: "查询状态",
             systemImageName: "waveform.circle"
         )
+    }
+}
+
+private enum ShortcutURLRunner {
+    static func open(_ command: ShortcutURLCommand) async {
+        _ = await MainActor.run {
+            NSWorkspace.shared.open(command.url)
+        }
     }
 }
