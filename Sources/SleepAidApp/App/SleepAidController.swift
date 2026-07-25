@@ -43,9 +43,22 @@ final class SleepAidController: ObservableObject {
         focusIntegration.configure { [weak self] in
             self?.startDefaultSleepPreset()
         }
-        ShortcutRequestCenter.shared.configure { [weak self] scene in
-            self?.chooseScene(scene)
-            self?.startQuickSession(minutes: scene.defaultMinutes)
+        ShortcutRequestCenter.shared.configure { [weak self] command in
+            guard let self else {
+                return ShortcutCommandResponse(
+                    dialog: "白噪音还没有准备好，请先打开应用。",
+                    snapshot: ShortcutSessionSnapshot(
+                        scene: .sleep,
+                        soundscape: .rain,
+                        playbackState: .idle,
+                        remainingText: "--:--",
+                        selectedMinutes: NoiseScene.sleep.defaultMinutes,
+                        volume: 0.55
+                    )
+                )
+            }
+
+            return self.handleShortcutCommand(command)
         }
     }
 
@@ -163,6 +176,52 @@ final class SleepAidController: ObservableObject {
     func setSceneAssignment(_ soundscape: Soundscape, enabled: Bool, for scene: NoiseScene) {
         sceneAssignments.set(soundscape, enabled: enabled, for: scene)
         keepSelectedSoundscapeAvailable()
+    }
+
+    func handleShortcutCommand(_ command: ShortcutCommand) -> ShortcutCommandResponse {
+        let dialog: String
+
+        switch command {
+        case let .start(scene):
+            chooseScene(scene)
+            startQuickSession(minutes: selectedMinutes)
+            dialog = "已开始\(scene.displayName)白噪音"
+        case .pause:
+            pauseSession()
+            dialog = "已暂停白噪音"
+        case .resume:
+            resumeSession()
+            dialog = "已继续白噪音"
+        case .stop:
+            stopSession(fadeOut: false)
+            dialog = "已停止白噪音"
+        case let .switchSoundscape(soundscape):
+            chooseSoundscape(soundscape)
+            dialog = "已切换到\(soundscape.displayName)"
+        case let .setDuration(minutes):
+            let clampedMinutes = ShortcutCommand.setDuration(minutes: minutes).clampedMinutes ?? minutes
+            selectedMinutes = clampedMinutes
+            customMinutes = clampedMinutes
+            if playbackState.isActive {
+                startSession(soundscape: selectedSoundscape, minutes: clampedMinutes)
+            }
+            dialog = clampedMinutes == 0 ? "已设置为不限时" : "已设置为 \(clampedMinutes) 分钟"
+        case .queryStatus:
+            dialog = currentShortcutSnapshot.summary
+        }
+
+        return ShortcutCommandResponse(dialog: dialog, snapshot: currentShortcutSnapshot)
+    }
+
+    var currentShortcutSnapshot: ShortcutSessionSnapshot {
+        ShortcutSessionSnapshot(
+            scene: selectedScene,
+            soundscape: selectedSoundscape,
+            playbackState: playbackState,
+            remainingText: remainingText,
+            selectedMinutes: selectedMinutes,
+            volume: volume
+        )
     }
 
     private func startSession(soundscape: Soundscape, minutes: Int) {

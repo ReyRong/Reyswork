@@ -12,4 +12,15 @@ final class SleepAidControllerTests: XCTestCase {
 
         XCTAssertEqual(controller.customMinutes, 20)
     }
+
+    func testShortcutCanSetUnlimitedDuration() {
+        let userDefaults = UserDefaults(suiteName: "SleepAidControllerTests-\(UUID().uuidString)")!
+        let controller = SleepAidController(settingsStore: AppSettingsStore(userDefaults: userDefaults))
+
+        let response = controller.handleShortcutCommand(.setDuration(minutes: 0))
+
+        XCTAssertEqual(controller.selectedMinutes, 0)
+        XCTAssertEqual(controller.customMinutes, 0)
+        XCTAssertEqual(response.dialog, "已设置为不限时")
+    }
 }
