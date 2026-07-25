@@ -15,7 +15,7 @@ if [[ -x "$LSREGISTER" ]]; then
   while IFS= read -r registered_app; do
     [[ -d "$registered_app" ]] || continue
     "$LSREGISTER" -u "$registered_app" >/dev/null 2>&1 || true
-  done < <(find "$ROOT_DIR/build" -name "$APP_NAME.app" -o -name "$APP_NAME 2.app" -o -name "$APP_NAME 3.app" 2>/dev/null)
+  done < <(find "$ROOT_DIR/build" -type d -name "$APP_NAME*.app" 2>/dev/null)
 
   if [[ -d "$DESTINATION" ]]; then
     "$LSREGISTER" -u "$DESTINATION" >/dev/null 2>&1 || true

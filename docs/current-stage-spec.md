@@ -175,6 +175,7 @@
 - The controller executes shortcut commands without requiring the main window to be visible.
 - Shortcut execution should not actively present the main window.
 - AppIntent actions open the appropriate URL and return a concise dialog result.
+- AppIntent actions should run with `openAppWhenRun = true` in v1, because the installed macOS app is the reliable process boundary for handling playback commands.
 - v1 exposes five shortcut actions: start sleep, random sleep soundscape, pause or resume, stop, and query status.
 - v1 removes the start focus shortcut action from the immediate shortcut surface.
 - v1 combines pause and resume into a single toggle-style action.
@@ -191,6 +192,7 @@
   - `whitenoise://shortcut/stop`
   - `whitenoise://shortcut/status`
 - The local install process must keep LaunchServices registration clean so Shortcuts does not bind to old Bundle IDs or temporary build products.
+- The local install process must unregister all locally built `SleepAidApp*.app` copies under `build/`, including Xcode derived-data products, before registering the `/Applications` copy.
 - Existing shortcuts created before the Bundle ID migration may need to be rebuilt by deleting old shortcut action blocks and adding new ones.
 
 ## Testing Decisions

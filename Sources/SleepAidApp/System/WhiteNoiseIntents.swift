@@ -5,7 +5,7 @@ import Foundation
 struct StartSleepNoiseIntent: AppIntent {
     static let title: LocalizedStringResource = "开始助眠白噪音"
     static let description = IntentDescription("使用当前助眠音景开始播放白噪音。")
-    static let openAppWhenRun = false
+    static let openAppWhenRun = true
 
     func perform() async throws -> some IntentResult {
         await ShortcutURLRunner.open(.startSleep)
@@ -16,7 +16,7 @@ struct StartSleepNoiseIntent: AppIntent {
 struct StartRandomSleepNoiseIntent: AppIntent {
     static let title: LocalizedStringResource = "助眠白噪音随机"
     static let description = IntentDescription("从已选择为助眠的白噪音中随机播放。")
-    static let openAppWhenRun = false
+    static let openAppWhenRun = true
 
     func perform() async throws -> some IntentResult {
         await ShortcutURLRunner.open(.startSleepRandom)
@@ -27,7 +27,7 @@ struct StartRandomSleepNoiseIntent: AppIntent {
 struct ToggleWhiteNoisePauseIntent: AppIntent {
     static let title: LocalizedStringResource = "暂停或继续白噪音"
     static let description = IntentDescription("播放时暂停，暂停时继续，未播放时不自动开始。")
-    static let openAppWhenRun = false
+    static let openAppWhenRun = true
 
     func perform() async throws -> some IntentResult {
         await ShortcutURLRunner.open(.togglePause)
@@ -38,7 +38,7 @@ struct ToggleWhiteNoisePauseIntent: AppIntent {
 struct StopWhiteNoiseIntent: AppIntent {
     static let title: LocalizedStringResource = "停止白噪音"
     static let description = IntentDescription("立即停止当前播放的白噪音。")
-    static let openAppWhenRun = false
+    static let openAppWhenRun = true
 
     func perform() async throws -> some IntentResult {
         await ShortcutURLRunner.open(.stop)
@@ -49,7 +49,7 @@ struct StopWhiteNoiseIntent: AppIntent {
 struct QueryWhiteNoiseStatusIntent: AppIntent {
     static let title: LocalizedStringResource = "查询白噪音状态"
     static let description = IntentDescription("返回白噪音当前是否正在播放、已暂停或未播放。")
-    static let openAppWhenRun = false
+    static let openAppWhenRun = true
 
     func perform() async throws -> some IntentResult {
         let status = ShortcutStatusStore().load()
