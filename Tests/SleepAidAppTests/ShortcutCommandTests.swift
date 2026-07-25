@@ -22,18 +22,6 @@ final class ShortcutCommandTests: XCTestCase {
         XCTAssertEqual(shortcutSummary(for: .paused), "已暂停")
     }
 
-    func testAppShortcutsExposeV1UserActions() {
-        XCTAssertEqual(WhiteNoiseShortcuts.appShortcuts.count, 5)
-    }
-
-    func testShortcutIntentsRunInAppProcess() {
-        XCTAssertTrue(StartSleepNoiseIntent.openAppWhenRun)
-        XCTAssertTrue(StartRandomSleepNoiseIntent.openAppWhenRun)
-        XCTAssertTrue(ToggleWhiteNoisePauseIntent.openAppWhenRun)
-        XCTAssertTrue(StopWhiteNoiseIntent.openAppWhenRun)
-        XCTAssertTrue(QueryWhiteNoiseStatusIntent.openAppWhenRun)
-    }
-
     private func shortcutSummary(for playbackState: PlaybackState) -> String {
         ShortcutSessionSnapshot(
             scene: .sleep,

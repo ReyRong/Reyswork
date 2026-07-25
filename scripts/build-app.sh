@@ -34,6 +34,7 @@ xcodebuild \
 rm -rf "$OUTPUT_APP_DIR"
 mkdir -p "$BUILD_DIR"
 ditto --noextattr "$XCODE_APP_PATH" "$OUTPUT_APP_DIR"
+rm -rf "$OUTPUT_APP_DIR/Contents/Resources/Metadata.appintents"
 
 if command -v xattr >/dev/null 2>&1; then
   xattr -cr "$OUTPUT_APP_DIR"

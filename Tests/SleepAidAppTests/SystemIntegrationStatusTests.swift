@@ -6,7 +6,7 @@ final class SystemIntegrationStatusTests: XCTestCase {
     func testFocusIntegrationInitialStatusIsUserFacingShortcutStatus() {
         let service = FocusIntegrationService()
 
-        XCTAssertEqual(service.statusMessage, "快捷指令入口可用；系统专注模式自动联动暂未接入。")
+        XCTAssertEqual(service.statusMessage, "当前本机版使用快捷指令的“打开 URL”动作；原生动作待正式签名后再启用。")
     }
 
     func testLoginItemNotFoundStatusIsUserFacingDisabledState() {

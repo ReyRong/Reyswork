@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 final class FocusIntegrationService: ObservableObject {
-    @Published private(set) var statusMessage = "快捷指令入口可用；系统专注模式自动联动暂未接入。"
+    @Published private(set) var statusMessage = "当前本机版使用快捷指令的“打开 URL”动作；原生动作待正式签名后再启用。"
 
     private var activateSleepPresetAction: (() -> Void)?
 
@@ -16,6 +16,6 @@ final class FocusIntegrationService: ObservableObject {
 
     func activateSleepPreset() {
         activateSleepPresetAction?()
-        statusMessage = "已通过快捷指令入口启动默认助眠预设。"
+        statusMessage = "已通过 URL 入口启动默认助眠预设。"
     }
 }

@@ -136,13 +136,13 @@
 
 ## Solution
 
-快捷指令 v1 改为 URL Scheme 通信。AppIntent 不再把命令直接发给进程内 singleton，而是打开一个 `whitenoise://` URL。白噪音 app 在启动或运行中接收 URL，并由 app 内部 controller 执行对应命令。
+快捷指令 v1 改为 URL Scheme 通信。由于当前本机版没有 Apple 开发者签名，macOS Shortcuts 可以发现 AppIntent 元数据但运行时无法与 app 建立可靠通信。因此 v1 不暴露原生白噪音 AppIntent 动作，用户改用快捷指令内置的“打开 URL”动作打开 `whitenoise://` URL。白噪音 app 在启动或运行中接收 URL，并由 app 内部 controller 执行对应命令。
 
 从用户角度看，快捷指令仍然是“白噪音”的原生动作；从系统角度看，动作执行路径变为：
 
-`快捷指令 AppIntent -> 打开 whitenoise:// URL -> 白噪音 app 接收 URL -> 执行播放控制`
+`快捷指令打开 URL 动作 -> whitenoise:// URL -> 白噪音 app 接收 URL -> 执行播放控制`
 
-快捷指令执行时只唤起 app 或菜单栏，不主动显示主窗口。成功或失败通过快捷指令返回文本表达。v1 不暴露时长、音景、音量等参数，只提供固定动作，减少自动化入口复杂度。
+快捷指令执行时只唤起 app 或菜单栏，不主动显示主窗口。v1 不暴露时长、音景、音量等参数，只提供固定动作，减少自动化入口复杂度。状态查询 URL 只触发 app 内部状态处理，不保证向快捷指令返回文本；原生状态返回待正式签名后的 AppIntent 版本再恢复。
 
 ## User Stories
 
@@ -174,8 +174,8 @@
 - The SwiftUI app scene receives shortcut URLs and forwards them to the app controller.
 - The controller executes shortcut commands without requiring the main window to be visible.
 - Shortcut execution should not actively present the main window.
-- AppIntent actions open the appropriate URL and return a concise dialog result.
-- AppIntent actions should run with `openAppWhenRun = true` in v1, because the installed macOS app is the reliable process boundary for handling playback commands.
+- Native AppIntent actions are disabled in the unsigned local v1 because Shortcuts reports that it cannot communicate with the app.
+- Users create shortcuts with the system-provided “Open URL” action and paste one of the supported `whitenoise://` routes.
 - v1 exposes five shortcut actions: start sleep, random sleep soundscape, pause or resume, stop, and query status.
 - v1 removes the start focus shortcut action from the immediate shortcut surface.
 - v1 combines pause and resume into a single toggle-style action.
@@ -193,7 +193,7 @@
   - `whitenoise://shortcut/status`
 - The local install process must keep LaunchServices registration clean so Shortcuts does not bind to old Bundle IDs or temporary build products.
 - The local install process must unregister all locally built `SleepAidApp*.app` copies under `build/`, including Xcode derived-data products, before registering the `/Applications` copy.
-- Existing shortcuts created before the Bundle ID migration may need to be rebuilt by deleting old shortcut action blocks and adding new ones.
+- Existing shortcuts created from the native 白噪音 action should be deleted and rebuilt with the system “Open URL” action.
 
 ## Testing Decisions
 
@@ -206,11 +206,12 @@
 - Add URL parsing tests for every v1 shortcut URL.
 - Add app metadata tests proving the `whitenoise` URL Scheme is registered.
 - Keep LaunchServices install-script tests so local development does not reintroduce duplicate app registrations.
-- System discovery in the macOS Shortcuts app remains a manual verification step because it depends on installed app registration and system indexing.
+- System Shortcuts verification for v1 should use the built-in “Open URL” action, not the native 白噪音 AppIntent action.
 
 ## Out of Scope
 
 - Start focus as a shortcut action is out of scope for shortcut v1.
+- Native AppIntent actions are out of scope for the unsigned local shortcut v1 and should return only after the app can be built with a valid Apple signing identity.
 - Shortcut parameters for duration, soundscape, scene, volume, or fade behavior are out of scope for shortcut v1.
 - Dynamic shortcut entities for user-imported audio are out of scope.
 - A background XPC service, App Group command queue, or full automation service architecture is out of scope for shortcut v1.
@@ -220,6 +221,6 @@
 ## Further Notes
 
 - This spec deliberately keeps shortcut v1 smaller than the app's full product model. The app can remain both sleep and focus oriented while the first reliable shortcut surface focuses on sleep automation.
-- URL Scheme communication is chosen because it is explicit, testable, and suitable for a local macOS utility at this stage.
-- If shortcut reliability still fails after URL Scheme migration, the next architectural question should be whether a signed helper, App Group, or XPC boundary is needed.
+- URL Scheme communication is chosen because it is explicit, testable, and suitable for an unsigned local macOS utility at this stage.
+- If native shortcut actions are restored later, the next architectural requirement is a valid Apple signing identity before reintroducing AppIntent-based execution.
 - The issue tracker and triage label vocabulary were not available in this workspace context, so this shortcut communication spec is stored in the project document rather than being published to an issue tracker.

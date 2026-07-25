@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct SettingsWindowView: View {
@@ -145,6 +146,19 @@ struct SettingsWindowView: View {
                         systemImage: "moon.circle"
                     )
                 }
+
+                section("快捷指令 URL") {
+                    shortcutURLRow(title: "开始助眠", command: .startSleep)
+                    shortcutURLRow(title: "随机助眠", command: .startSleepRandom)
+                    shortcutURLRow(title: "暂停或继续", command: .togglePause)
+                    shortcutURLRow(title: "停止", command: .stop)
+
+                    Text("在 macOS 快捷指令中添加系统动作“打开 URL”，粘贴以上地址即可。当前未启用原生白噪音动作。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
@@ -258,6 +272,41 @@ struct SettingsWindowView: View {
                 .overlay(AppTheme.divider(for: colorScheme))
                 .padding(.leading, 16)
         }
+    }
+
+    private func shortcutURLRow(title: String, command: ShortcutURLCommand) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Text(title)
+                    .font(.body)
+                    .frame(width: 84, alignment: .leading)
+
+                Text(command.url.absoluteString)
+                    .font(.system(.callout, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Button("复制", systemImage: "doc.on.doc") {
+                    copyToPasteboard(command.url.absoluteString)
+                }
+                .labelStyle(.iconOnly)
+                .help("复制 URL")
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+
+            Divider()
+                .overlay(AppTheme.divider(for: colorScheme))
+                .padding(.leading, 16)
+        }
+    }
+
+    private func copyToPasteboard(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
     }
 
     private func sceneAssignmentToggle(for soundscape: Soundscape, scene: NoiseScene) -> some View {

@@ -25,7 +25,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         let project = try readProjectFile()
 
         XCTAssertTrue(project.contains("SleepAidApp.swift"))
-        XCTAssertTrue(project.contains("WhiteNoiseIntents.swift"))
+        XCTAssertFalse(project.contains("WhiteNoiseIntents.swift"))
         XCTAssertTrue(project.contains("ShortcutURLCommand.swift"))
         XCTAssertTrue(project.contains("ShortcutStatusStore.swift"))
         XCTAssertTrue(project.contains("cafe.m4a"))
@@ -42,6 +42,16 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         XCTAssertTrue(script.contains("lsregister"))
         XCTAssertTrue(script.contains("-u \"$DESTINATION\""))
         XCTAssertTrue(script.contains("-f -R -trusted \"$DESTINATION\""))
+        XCTAssertTrue(script.contains("-type d -name \"$APP_NAME*.app\""))
+    }
+
+    func testBuildScriptRemovesStaleAppIntentMetadataForURLOnlyBuilds() throws {
+        let scriptURL = repositoryRoot()
+            .appendingPathComponent("scripts")
+            .appendingPathComponent("build-app.sh")
+        let script = try String(contentsOf: scriptURL, encoding: .utf8)
+
+        XCTAssertTrue(script.contains("Metadata.appintents"))
     }
 
     private func readProjectFile() throws -> String {
