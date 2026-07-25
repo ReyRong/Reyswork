@@ -22,6 +22,17 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         XCTAssertTrue(project.contains("summer-night.m4a"))
     }
 
+    func testLocalInstallScriptRefreshesLaunchServicesRegistration() throws {
+        let scriptURL = repositoryRoot()
+            .appendingPathComponent("scripts")
+            .appendingPathComponent("install-local.sh")
+        let script = try String(contentsOf: scriptURL, encoding: .utf8)
+
+        XCTAssertTrue(script.contains("lsregister"))
+        XCTAssertTrue(script.contains("-u \"$DESTINATION\""))
+        XCTAssertTrue(script.contains("-f -R -trusted \"$DESTINATION\""))
+    }
+
     private func readProjectFile() throws -> String {
         let projectURL = repositoryRoot()
             .appendingPathComponent("SleepAidApp.xcodeproj")
