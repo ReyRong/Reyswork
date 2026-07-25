@@ -13,6 +13,9 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "SleepAidApp",
+            exclude: [
+                "App/Info.plist"
+            ],
             resources: [
                 .process("Resources")
             ]

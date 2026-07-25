@@ -4,7 +4,7 @@ struct AudioResourceResolver {
     private static let resourceBundleName = "SleepAidApp_SleepAidApp.bundle"
 
     static func url(for soundscape: Soundscape, bundle: Bundle? = nil) throws -> URL {
-        guard let searchBundle = bundle ?? installedResourceBundle() ?? packageResourceBundle() else {
+        guard let searchBundle = bundle ?? installedResourceBundle() ?? nativeAppBundle() ?? packageResourceBundle() else {
             throw AudioPlayerError.resourceMissing(soundscape)
         }
 
@@ -42,11 +42,19 @@ struct AudioResourceResolver {
         return Bundle(url: url)
     }
 
+    private static func nativeAppBundle() -> Bundle? {
+        Bundle.main.bundleURL.pathExtension == "app" ? Bundle.main : nil
+    }
+
     private static func packageResourceBundle() -> Bundle? {
         guard Bundle.main.bundleURL.pathExtension != "app" else {
             return nil
         }
 
+        #if SWIFT_PACKAGE
         return .module
+        #else
+        return nil
+        #endif
     }
 }
