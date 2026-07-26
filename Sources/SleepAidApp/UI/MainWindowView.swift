@@ -24,75 +24,74 @@ struct MainWindowView: View {
     }
 
     private var playbackSessionView: some View {
-        TimelineView(.periodic(from: Date(), by: 1)) { context in
-            let clockText = Self.sessionClockFormatter.string(from: context.date)
-            let presentation = PlaybackSessionPresentation(
-                selectedMinutes: controller.selectedMinutes,
-                remainingText: controller.remainingText,
-                currentTimeText: clockText
-            )
-            let centralText = centralSessionText(from: presentation)
+        let isUnlimited = controller.selectedMinutes == 0
 
-            ZStack(alignment: .topTrailing) {
-                VStack(spacing: 16) {
-                    Spacer(minLength: 8)
+        return ZStack(alignment: .topTrailing) {
+            VStack(spacing: 16) {
+                Spacer(minLength: 8)
 
-                    sessionIcon
+                sessionIcon
 
-                    VStack(spacing: 5) {
-                        Text(controller.selectedScene.displayName)
-                            .font(.title3.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                        Text(controller.selectedSoundscape.displayName)
-                            .font(.system(size: 26, weight: .semibold))
-                    }
+                VStack(spacing: 5) {
+                    Text(controller.selectedScene.displayName)
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    Text(controller.selectedSoundscape.displayName)
+                        .font(.system(size: 26, weight: .semibold))
+                }
 
-                    Text(centralText)
-                        .font(.system(size: presentation.isUnlimited ? 82 : 96, weight: .semibold, design: .rounded))
+                if isUnlimited {
+                    SessionClockText(fontSize: 82)
                         .monospacedDigit()
                         .minimumScaleFactor(0.72)
                         .lineLimit(1)
                         .padding(.top, 2)
-
-                    Text(sessionTimeCaption(isUnlimited: presentation.isUnlimited))
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-
-                    sessionSoundscapeSwitcher
-                        .padding(.top, 4)
-                    sessionDurationControl
-                    sessionVolumeControl
-                    sessionControls
-                        .padding(.top, 4)
-
-                    Spacer(minLength: 8)
-                }
-                .frame(maxWidth: 560, maxHeight: .infinity)
-                .padding(.horizontal, 28)
-                .padding(.vertical, 20)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                if presentation.showsCornerClock {
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text("当前时间")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text(clockText)
-                            .font(.system(size: 28, weight: .semibold, design: .rounded))
-                            .monospacedDigit()
-                    }
-                    .padding(20)
+                } else {
+                    Text(centralSessionText())
+                        .font(.system(size: 96, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .minimumScaleFactor(0.72)
+                        .lineLimit(1)
+                        .padding(.top, 2)
                 }
 
-                scenePill
-                    .padding(20)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                Text(sessionTimeCaption(isUnlimited: isUnlimited))
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+
+                sessionSoundscapeSwitcher
+                    .padding(.top, 4)
+                sessionDurationControl
+                sessionVolumeControl
+                sessionControls
+                    .padding(.top, 4)
+
+                Spacer(minLength: 8)
             }
-            .background(AppTheme.windowBackground(for: colorScheme))
-            .animation(.easeInOut(duration: 0.22), value: controller.selectedScene)
-            .animation(.easeInOut(duration: 0.22), value: controller.selectedSoundscape)
-            .animation(.easeInOut(duration: 0.22), value: controller.playbackState.isActive)
+            .frame(maxWidth: 560, maxHeight: .infinity)
+            .padding(.horizontal, 28)
+            .padding(.vertical, 20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if !isUnlimited {
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("当前时间")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    SessionClockText(fontSize: 28)
+                        .monospacedDigit()
+                }
+                .padding(20)
+            }
+
+            scenePill
+                .padding(20)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
+        .background(AppTheme.windowBackground(for: colorScheme))
+        .animation(.easeInOut(duration: 0.22), value: controller.selectedScene)
+        .animation(.easeInOut(duration: 0.22), value: controller.selectedSoundscape)
+        .animation(.easeInOut(duration: 0.22), value: controller.playbackState.isActive)
     }
 
     private var sceneSidebar: some View {
@@ -265,13 +264,9 @@ struct MainWindowView: View {
         controller.startSelectedSession()
     }
 
-    private func centralSessionText(from presentation: PlaybackSessionPresentation) -> String {
-        if presentation.isUnlimited {
-            return presentation.centralText
-        }
-
+    private func centralSessionText() -> String {
         if controller.playbackState.isActive {
-            return presentation.centralText
+            return controller.remainingText
         }
 
         return Self.durationFormatter.string(from: TimeInterval(controller.selectedMinutes * 60)) ?? "--:--"
@@ -342,12 +337,6 @@ struct MainWindowView: View {
         controller.playbackState == .paused ? "play.fill" : "pause.fill"
     }
 
-    private static let sessionClockFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter
-    }()
-
     private static let durationFormatter: DateComponentsFormatter = {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.minute, .second]
@@ -360,6 +349,23 @@ struct MainWindowView: View {
         formatter.numberStyle = .none
         formatter.minimum = 1
         formatter.maximum = 480
+        return formatter
+    }()
+}
+
+private struct SessionClockText: View {
+    let fontSize: CGFloat
+
+    var body: some View {
+        TimelineView(.periodic(from: Date(), by: 1)) { context in
+            Text(Self.formatter.string(from: context.date))
+                .font(.system(size: fontSize, weight: .semibold, design: .rounded))
+        }
+    }
+
+    private static let formatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
         return formatter
     }()
 }

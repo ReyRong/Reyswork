@@ -59,6 +59,21 @@ scripts/build-app.sh
 scripts/install-local.sh
 ```
 
+性能回归检查：
+
+```bash
+ps -axo pid,pcpu,pmem,etime,command | rg 'SleepAidApp|PID'
+open 'whitenoise://shortcut/start-sleep-random'
+sample <SleepAidApp PID> 3 -file /tmp/SleepAidApp.sample.txt
+open 'whitenoise://shortcut/toggle-pause'
+open 'whitenoise://shortcut/stop'
+```
+
+参考基准：
+
+- 2026-07-26 修复前，安装版进程曾持续约 99-100% CPU。
+- 2026-07-26 修复后，空闲约 0.0-0.4% CPU，播放约 2.5% CPU，暂停约 0.4% CPU。
+
 生成 DMG：
 
 ```bash

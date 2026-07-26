@@ -224,3 +224,70 @@
 - URL Scheme communication is chosen because it is explicit, testable, and suitable for an unsigned local macOS utility at this stage.
 - If native shortcut actions are restored later, the next architectural requirement is a valid Apple signing identity before reintroducing AppIntent-based execution.
 - The issue tracker and triage label vocabulary were not available in this workspace context, so this shortcut communication spec is stored in the project document rather than being published to an issue tracker.
+
+# 性能与耗电修复 v1 规格
+
+## Problem Statement
+
+用户在实际使用白噪音 app 时发现卡顿，并且系统表现出明显的高耗电。当前安装版进程被观察到持续接近满核 CPU，占用约 99-100%，这与白噪音菜单栏工具的产品预期严重不符。白噪音 app 应该是低存在感、低功耗、可长时间播放的背景工具，而不是一个持续驱动主线程布局和本地写入的高负载应用。
+
+当前证据显示，问题更像是播放状态、倒计时和界面刷新链路过于频繁，而不是音频资源本身或 AVAudioPlayer 解码造成。倒计时每 0.25 秒触发一次状态变化；子对象状态变化会被控制器转发给整个 SwiftUI 树；同一高频路径还会保存快捷指令状态到本地偏好；播放界面的时钟也会周期性刷新较大的视图区域。这些行为叠加后，会让主界面、菜单栏和系统状态写入产生不必要的持续负载。
+
+## Solution
+
+v1 性能修复目标是把白噪音 app 恢复为低功耗后台工具。倒计时显示降为秒级刷新，快捷指令状态只在离散播放状态变化时保存，避免每个倒计时 tick 都写入本地偏好。播放界面仍保留时钟和倒计时，但刷新范围应尽量局部化，不应让整棵主界面反复重算。
+
+第一轮优化优先解决已确认的高频状态链路，不重做音频引擎，不改变用户已接受的播放模型。用户可接受倒计时只保留秒级精度，因为 app 的核心场景是助眠和专注，毫秒级或 0.25 秒级倒计时没有用户价值。
+
+性能验收不只看测试通过，还要看安装版进程在空闲、播放、暂停和倒计时运行时的 CPU 表现。目标是正常播放时 CPU 降到低个位数，并且不再持续接近满核。
+
+## User Stories
+
+1. As a sleep user, I want the app to play white noise without making my Mac lag, so that it feels safe to leave running before bed.
+2. As a focus user, I want unlimited focus playback to remain low power, so that it can run through long work or reading sessions.
+3. As a menu bar user, I want the app to stay lightweight when the main window is hidden, so that it behaves like a background utility.
+4. As a timed-session user, I want the countdown to update once per second, so that the remaining time is understandable without wasting power.
+5. As a paused-session user, I want the paused remaining time to stay frozen, so that pausing does not keep burning CPU.
+6. As a shortcuts user, I want status saved accurately when playback starts, pauses, resumes, stops, or errors, so that URL shortcut status remains useful.
+7. As a shortcuts user, I do not need shortcut status to be rewritten several times per second, so that automation support does not create hidden power cost.
+8. As a user, I want volume fade-in and fade-out to remain smooth, so that performance fixes do not make playback abrupt.
+9. As a user, I want the app to remain visually calm while playing, so that performance work does not regress the current simplified interface.
+10. As a developer, I want performance-sensitive behavior tested at the timer/controller seam, so that future UI changes do not reintroduce high-frequency state churn.
+11. As a developer, I want manual installed-app verification to include CPU observation, so that tests do not miss system-level power regressions.
+12. As a developer, I want the first fix to be narrow and evidence-driven, so that audio, shortcuts, and UI architecture are not changed unnecessarily.
+
+## Implementation Decisions
+
+- The app accepts second-level countdown precision for v1.
+- The timer should not publish four times per second for user-facing countdown display.
+- Timer publishing should avoid changing observable state when the displayed second has not changed.
+- Controller-level shortcut status persistence should not be wired to every timer tick.
+- Shortcut status should be saved on meaningful session events: app initialization, playback start, playback error, pause, resume, stop, shortcut command completion, and app termination.
+- The playback view may still show a live clock, but the clock refresh should not force unrelated controls and layout-heavy sections to recompute more than necessary.
+- Audio fade behavior remains in scope only if evidence shows fade timers continue running after completion or materially contribute to CPU use.
+- The first performance ticket should avoid broad visual redesign. UI simplification can be a follow-up if CPU remains high after fixing the state chain.
+- Installed app profiling is part of the acceptance criteria because SwiftUI preview/build tests cannot reveal menu bar and LaunchServices runtime cost.
+
+## Testing Decisions
+
+- The highest automated test seam is timer and controller behavior, because the user-visible contract is countdown state, pause/resume/stop state, and shortcut status, not SwiftUI internals.
+- Timer tests should verify start, cancel, completion, pause freeze, resume, formatted remaining, and second-level update behavior.
+- Controller tests should verify shortcut status is updated on discrete state transitions but does not depend on continuous countdown ticks.
+- Existing tests around paused remaining time, focus unlimited duration, shortcut commands, and termination status should remain green.
+- Manual verification must run the installed app, measure process CPU before and during playback, and compare against the previously observed 99-100% CPU behavior.
+- A good performance verification is evidence-based: command output or sample observations should show the app no longer spends sustained time in SwiftUI layout/update loops during normal playback.
+
+## Out of Scope
+
+- Replacing AVAudioPlayer or rewriting the audio engine is out of scope for the first performance pass.
+- Redesigning the entire main window or menu bar is out of scope for this performance spec.
+- Native AppIntent restoration is out of scope; URL Scheme shortcut support remains the current v1 strategy.
+- Adding telemetry, analytics, or background power monitoring is out of scope.
+- User-imported audio remains out of scope for v1.
+
+## Further Notes
+
+- The observed installed process consumed about 99-100% CPU before this spec was written.
+- The current leading hypothesis is high-frequency SwiftUI invalidation and local status persistence, not audio decode cost.
+- The expected first implementation should be small, measurable, and reversible if profiling disproves the hypothesis.
+- The `ready-for-agent` label was not present in GitHub at the time of writing, so tracker publication should either create that label first or use local ticket files until tracker conventions are confirmed.

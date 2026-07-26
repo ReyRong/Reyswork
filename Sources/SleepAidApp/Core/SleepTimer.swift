@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 final class SleepTimer: ObservableObject {
     static let presetMinutes = [20, 45, 60, 90]
+    private static let tickInterval: TimeInterval = 1
 
     @Published private(set) var remainingSeconds: TimeInterval = 0
     @Published private(set) var durationSeconds: TimeInterval = 0
@@ -28,13 +29,7 @@ final class SleepTimer: ObservableObject {
         isRunning = true
         isPaused = false
 
-        let newTimer = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.tick()
-            }
-        }
-        timer = newTimer
-        RunLoop.main.add(newTimer, forMode: .common)
+        scheduleTimer()
     }
 
     func cancel() {
@@ -70,13 +65,7 @@ final class SleepTimer: ObservableObject {
         isRunning = true
         isPaused = false
 
-        let newTimer = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.tick()
-            }
-        }
-        timer = newTimer
-        RunLoop.main.add(newTimer, forMode: .common)
+        scheduleTimer()
     }
 
     func formattedRemaining() -> String {
@@ -96,7 +85,10 @@ final class SleepTimer: ObservableObject {
         }
 
         let remaining = max(0, endDate.timeIntervalSinceNow)
-        remainingSeconds = remaining
+        let displayedRemaining = TimeInterval(Int(remaining.rounded(.up)))
+        if displayedRemaining != remainingSeconds {
+            remainingSeconds = displayedRemaining
+        }
 
         guard remaining <= 0 else {
             return
@@ -105,5 +97,15 @@ final class SleepTimer: ObservableObject {
         let completion = onComplete
         cancel()
         completion?()
+    }
+
+    private func scheduleTimer() {
+        let newTimer = Timer(timeInterval: Self.tickInterval, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.tick()
+            }
+        }
+        timer = newTimer
+        RunLoop.main.add(newTimer, forMode: .common)
     }
 }

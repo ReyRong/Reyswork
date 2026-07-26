@@ -127,16 +127,19 @@ final class SleepAidController: ObservableObject {
     func stopSession(fadeOut: Bool = true) {
         sleepTimer.cancel()
         audioPlayer.stop(fadeOut: fadeOut)
+        saveShortcutStatus(playbackState: .idle)
     }
 
     func pauseSession() {
         audioPlayer.pause()
         sleepTimer.pause()
+        saveShortcutStatus()
     }
 
     func resumeSession() {
         audioPlayer.resume()
         sleepTimer.resume()
+        saveShortcutStatus()
     }
 
     func setUnlimitedFocusEnabled(_ enabled: Bool) {
@@ -243,6 +246,7 @@ final class SleepAidController: ObservableObject {
         if minutes > 0 {
             sleepTimer.start(duration: TimeInterval(minutes * 60)) { [weak self] in
                 self?.audioPlayer.stop(fadeOut: true)
+                self?.saveShortcutStatus(playbackState: .idle)
             }
         } else {
             sleepTimer.cancel()
@@ -316,14 +320,12 @@ final class SleepAidController: ObservableObject {
         audioPlayer.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
-                self?.saveShortcutStatus()
             }
             .store(in: &cancellables)
 
         sleepTimer.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
-                self?.saveShortcutStatus()
             }
             .store(in: &cancellables)
 
@@ -337,6 +339,10 @@ final class SleepAidController: ObservableObject {
     }
 
     private func saveShortcutStatus() {
-        shortcutStatusStore.save(currentShortcutSnapshot.summary)
+        saveShortcutStatus(playbackState: playbackState)
+    }
+
+    private func saveShortcutStatus(playbackState: PlaybackState) {
+        shortcutStatusStore.save(playbackState.shortcutDisplayName)
     }
 }

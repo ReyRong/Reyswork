@@ -77,4 +77,23 @@ final class SleepAidControllerTests: XCTestCase {
 
         XCTAssertEqual(statusStore.load(), "未播放")
     }
+
+    func testCountdownTicksDoNotRewriteShortcutStatus() async {
+        let userDefaults = UserDefaults(suiteName: "SleepAidControllerTests-\(UUID().uuidString)")!
+        let statusStore = ShortcutStatusStore(userDefaults: userDefaults)
+        let controller = SleepAidController(
+            settingsStore: AppSettingsStore(userDefaults: userDefaults),
+            shortcutStatusStore: statusStore
+        )
+
+        _ = controller.handleShortcutCommand(.startSleep)
+        XCTAssertEqual(statusStore.load(), "正在播放")
+
+        statusStore.save("sentinel")
+        try? await Task.sleep(nanoseconds: 1_200_000_000)
+
+        XCTAssertEqual(statusStore.load(), "sentinel")
+
+        controller.stopSession(fadeOut: false)
+    }
 }
