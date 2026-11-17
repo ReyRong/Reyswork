@@ -30,6 +30,19 @@ final class AppSettingsStoreTests: XCTestCase {
         XCTAssertEqual(store.load(), settings)
     }
 
+    func testMaximumDurationSurvivesSaveAndLoad() throws {
+        let suiteName = "AppSettingsStoreTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let store = AppSettingsStore(userDefaults: defaults)
+        var settings = AppSettings.defaults
+        settings.selectedMinutes = 720
+        settings.customMinutes = 720
+        store.save(settings)
+        XCTAssertEqual(store.load().selectedMinutes, 720)
+        XCTAssertEqual(store.load().customMinutes, 720)
+    }
+
     func testLoadFallsBackToDefaultsWhenNoSettingsExist() throws {
         let suiteName = "AppSettingsStoreTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))

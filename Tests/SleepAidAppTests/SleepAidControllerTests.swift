@@ -13,6 +13,44 @@ final class SleepAidControllerTests: XCTestCase {
         XCTAssertEqual(controller.customMinutes, 20)
     }
 
+    func testEditingDurationDoesNotStartIdleAudio() throws {
+        let suiteName = "SleepAidControllerTests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let controller = SleepAidController(
+            settingsStore: AppSettingsStore(userDefaults: defaults),
+            shortcutStatusStore: ShortcutStatusStore(userDefaults: defaults)
+        )
+        controller.setSessionDuration(minutes: 720)
+        XCTAssertEqual(controller.selectedMinutes, 720)
+        XCTAssertEqual(controller.customMinutes, 720)
+        XCTAssertEqual(controller.playbackState, .idle)
+        XCTAssertFalse(controller.sleepTimer.isRunning)
+        controller.setSessionDuration(minutes: 721)
+        controller.setSessionDuration(minutes: 0)
+        XCTAssertEqual(controller.selectedMinutes, 720)
+    }
+
+    func testEditingDurationPreservesPausedPlayback() throws {
+        let suiteName = "SleepAidControllerTests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let controller = SleepAidController(
+            settingsStore: AppSettingsStore(userDefaults: defaults),
+            shortcutStatusStore: ShortcutStatusStore(userDefaults: defaults)
+        )
+        controller.volume = 0
+        controller.startSelectedSession()
+        defer { controller.stopSession(fadeOut: false) }
+        XCTAssertEqual(controller.playbackState, .playing)
+        controller.pauseSession()
+        controller.setSessionDuration(minutes: 120)
+        XCTAssertEqual(controller.playbackState, .paused)
+        XCTAssertTrue(controller.sleepTimer.isPaused)
+        XCTAssertFalse(controller.sleepTimer.isRunning)
+        XCTAssertEqual(controller.sleepTimer.remainingSeconds, 7200, accuracy: 1)
+    }
+
     func testStartSleepShortcutUsesCurrentSleepSoundscape() {
         let userDefaults = UserDefaults(suiteName: "SleepAidControllerTests-\(UUID().uuidString)")!
         let controller = SleepAidController(settingsStore: AppSettingsStore(userDefaults: userDefaults))

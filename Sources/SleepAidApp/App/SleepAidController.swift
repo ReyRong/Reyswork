@@ -108,12 +108,25 @@ final class SleepAidController: ObservableObject {
     }
 
     func startCustomSession() {
-        let minutes = min(max(customMinutes, 1), 480)
+        let minutes = min(max(customMinutes, 1), SessionDurationInput.maximumMinutes)
         customMinutes = minutes
         selectedMinutes = minutes
         let soundscape = nextSoundscape(for: selectedScene)
         selectedSoundscape = soundscape
         startSession(soundscape: soundscape, minutes: minutes)
+    }
+
+    func setSessionDuration(minutes: Int) {
+        guard minutes >= (selectedScene == .focus ? 0 : 1),
+              minutes <= SessionDurationInput.maximumMinutes else { return }
+        let wasPaused = playbackState == .paused
+        selectedMinutes = minutes
+        customMinutes = minutes
+        if playbackState.isActive {
+            configureSleepTimer(minutes: minutes)
+            if wasPaused, minutes > 0 { sleepTimer.pause() }
+            saveShortcutStatus()
+        }
     }
 
     func startQuickSession(minutes: Int) {
@@ -243,6 +256,11 @@ final class SleepAidController: ObservableObject {
             return
         }
 
+        configureSleepTimer(minutes: minutes)
+        saveShortcutStatus()
+    }
+
+    private func configureSleepTimer(minutes: Int) {
         if minutes > 0 {
             sleepTimer.start(duration: TimeInterval(minutes * 60)) { [weak self] in
                 self?.audioPlayer.stop(fadeOut: true)
@@ -251,7 +269,6 @@ final class SleepAidController: ObservableObject {
         } else {
             sleepTimer.cancel()
         }
-        saveShortcutStatus()
     }
 
     private func startDefaultSleepPreset() {

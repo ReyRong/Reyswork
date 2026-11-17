@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SettingsWindowView: View {
     @ObservedObject var controller: SleepAidController
+    @State private var selectedSection = "通用"
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("settings.openMainWindowOnLaunch") private var openMainWindowOnLaunch = true
     @AppStorage("settings.stopWithFadeOut") private var stopWithFadeOut = true
@@ -10,8 +11,17 @@ struct SettingsWindowView: View {
     @AppStorage("settings.focusStartBehavior") private var focusStartBehavior = StartBehavior.currentSelection.rawValue
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
+        VStack(spacing: 0) {
+            Picker("设置分类", selection: $selectedSection) {
+                ForEach(["通用", "播放", "媒体库", "系统集成"], id: \.self) { section in
+                    Text(section).tag(section)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(20)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                if selectedSection == "通用" {
                 section("通用") {
                     settingsRow("默认场景") {
                         Picker("默认场景", selection: $controller.selectedScene) {
@@ -24,9 +34,10 @@ struct SettingsWindowView: View {
                         .frame(width: 200)
                     }
 
-                    settingsRow("启动时") {
+                    settingsRow("启动时打开主界面") {
                         Toggle("打开主界面", isOn: $openMainWindowOnLaunch)
-                            .toggleStyle(.checkbox)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
                     }
 
                     settingsRow("默认音量") {
@@ -46,6 +57,9 @@ struct SettingsWindowView: View {
                     }
                 }
 
+                }
+
+                if selectedSection == "播放" {
                 section("播放") {
                     settingsRow("默认时长（助眠）") {
                         Picker("默认时长（助眠）", selection: sleepDurationBinding) {
@@ -89,10 +103,13 @@ struct SettingsWindowView: View {
                     settingsRow("停止时淡出") {
                         Toggle("停止时淡出", isOn: $stopWithFadeOut)
                             .labelsHidden()
-                            .toggleStyle(.checkbox)
+                            .toggleStyle(.switch)
                     }
                 }
 
+                }
+
+                if selectedSection == "媒体库" {
                 section("媒体库") {
                     HStack {
                         Text("音景")
@@ -120,6 +137,9 @@ struct SettingsWindowView: View {
                         .padding(.bottom, 12)
                 }
 
+                }
+
+                if selectedSection == "系统集成" {
                 section("系统集成") {
                     settingsRow("登录后启动") {
                         Toggle(
@@ -130,7 +150,7 @@ struct SettingsWindowView: View {
                             )
                         )
                         .labelsHidden()
-                        .toggleStyle(.checkbox)
+                        .toggleStyle(.switch)
                         .disabled(!controller.loginItemService.isAvailable)
                     }
 
@@ -159,11 +179,13 @@ struct SettingsWindowView: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
                 }
+                }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 20)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 20)
         }
-        .background(AppTheme.windowBackground(for: colorScheme))
+        .background(AppTheme.sceneBackground(for: colorScheme))
         .onAppear {
             controller.loginItemService.refreshStatus()
         }
@@ -203,11 +225,7 @@ struct SettingsWindowView: View {
             VStack(spacing: 0) {
                 content()
             }
-            .background(AppTheme.panelBackground(for: colorScheme), in: RoundedRectangle(cornerRadius: 8))
-            .overlay {
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(AppTheme.neutralBorder(for: colorScheme), lineWidth: colorScheme == .dark ? 0.35 : 0.5)
-            }
+            .sleepGlass(in: RoundedRectangle(cornerRadius: 16))
         }
     }
 

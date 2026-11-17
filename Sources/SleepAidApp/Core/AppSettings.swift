@@ -50,11 +50,11 @@ private extension AppSettings {
     func validated() -> AppSettings {
         var next = self
         if selectedScene == .focus {
-            next.selectedMinutes = min(max(selectedMinutes, 0), 480)
-            next.customMinutes = min(max(customMinutes, 0), 480)
+            next.selectedMinutes = min(max(selectedMinutes, 0), SessionDurationInput.maximumMinutes)
+            next.customMinutes = min(max(customMinutes, 0), SessionDurationInput.maximumMinutes)
         } else {
-            next.selectedMinutes = min(max(selectedMinutes, 1), 480)
-            next.customMinutes = min(max(customMinutes, 1), 480)
+            next.selectedMinutes = min(max(selectedMinutes, 1), SessionDurationInput.maximumMinutes)
+            next.customMinutes = min(max(customMinutes, 1), SessionDurationInput.maximumMinutes)
         }
         next.volume = min(max(volume, 0), 1)
 
@@ -68,5 +68,18 @@ private extension AppSettings {
         }
 
         return next
+    }
+}
+
+enum SessionDurationInput {
+    static let maximumMinutes = 720
+
+    static func minutes(from text: String, scene: NoiseScene) -> Int? {
+        guard !text.isEmpty, text.allSatisfy({ $0.isASCII && $0.isNumber }),
+              let minutes = Int(text), minutes <= maximumMinutes,
+              minutes >= (scene == .focus ? 0 : 1) else {
+            return nil
+        }
+        return minutes
     }
 }
