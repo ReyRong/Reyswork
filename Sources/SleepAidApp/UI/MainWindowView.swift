@@ -7,6 +7,7 @@ struct MainWindowView: View {
     @Environment(\.openWindow) private var openWindow
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var showsDuration = false
+    @State private var appearanceOverride: ColorScheme?
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -33,18 +34,15 @@ struct MainWindowView: View {
             .background(AppTheme.sceneBackground(for: colorScheme))
             .navigationTitle(controller.selectedScene.displayName)
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        openWindow(id: "settings")
-                    } label: {
-                        Image(systemName: "gearshape")
-                    }
-                    .help("设置")
-                    .accessibilityLabel("打开设置")
-                    .keyboardShortcut(",", modifiers: .command)
+                if #available(macOS 26.0, *) {
+                    ToolbarItem(placement: .primaryAction) { toolbarControls }
+                        .sharedBackgroundVisibility(.hidden)
+                } else {
+                    ToolbarItem(placement: .primaryAction) { toolbarControls }
                 }
             }
         }
+        .preferredColorScheme(appearanceOverride)
         .tint(colorScheme == .dark ? AppTheme.sleepAccent : .purple)
         .toolbarBackground(.ultraThinMaterial, for: .windowToolbar)
         .onChange(of: controller.playbackState.isActive) { active in
@@ -55,6 +53,37 @@ struct MainWindowView: View {
         .sheet(isPresented: $showsDuration) {
             SessionDurationSheet(controller: controller)
         }
+    }
+
+    private var toolbarControls: some View {
+        HStack(spacing: 4) {
+            Button {
+                appearanceOverride = colorScheme == .dark ? .light : .dark
+            } label: {
+                Label(colorScheme == .dark ? "切换到浅色外观" : "切换到深色外观",
+                      systemImage: colorScheme == .dark ? "sun.max" : "moon")
+                    .labelStyle(.iconOnly)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Circle())
+            }
+            .help(colorScheme == .dark ? "切换到浅色外观" : "切换到深色外观")
+
+            Button {
+                openWindow(id: "settings")
+            } label: {
+                Label("打开设置", systemImage: "gearshape")
+                    .labelStyle(.iconOnly)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Circle())
+            }
+            .help("设置")
+            .keyboardShortcut(",", modifiers: .command)
+        }
+        .font(.system(size: 16))
+        .buttonStyle(.plain)
+        .padding(4)
+        .sleepGlass(in: Capsule())
+        .accessibilityElement(children: .contain)
     }
 
     private var sceneSidebar: some View {
