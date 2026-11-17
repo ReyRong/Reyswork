@@ -12,7 +12,7 @@ struct SleepAidApp: App {
                 .onAppear {
                     appDelegate.configure(controller: controller)
                 }
-                .frame(minWidth: 900, minHeight: 680)
+                .frame(minWidth: 1000, minHeight: 680)
                 .setInitialWindowContentSize(width: 1060, height: 740)
                 .restoreWindowContentSize(width: 1060, height: 740, when: !controller.playbackState.isActive)
                 .hideInsteadOfCloseWindow()
