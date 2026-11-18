@@ -70,6 +70,7 @@ struct MainWindowView: View {
 
             Button {
                 openWindow(id: "settings")
+                MainWindowDockPresenter.showDock()
             } label: {
                 Label("打开设置", systemImage: "gearshape")
                     .labelStyle(.iconOnly)

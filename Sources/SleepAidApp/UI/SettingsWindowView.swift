@@ -34,7 +34,7 @@ struct SettingsWindowView: View {
                         .frame(width: 200)
                     }
 
-                    settingsRow("启动时打开主界面") {
+                    settingsRow("手动启动时打开主界面") {
                         Toggle("打开主界面", isOn: $openMainWindowOnLaunch)
                             .labelsHidden()
                             .toggleStyle(.switch)

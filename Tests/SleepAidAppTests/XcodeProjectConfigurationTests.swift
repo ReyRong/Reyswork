@@ -12,6 +12,10 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         XCTAssertEqual(try readInfoPlistValue(forKey: "CFBundleName") as? String, "白噪音")
     }
 
+    func testAppStartsAsMenuBarAgentWithoutDockIcon() throws {
+        XCTAssertEqual(try readInfoPlistValue(forKey: "LSUIElement") as? Bool, true)
+    }
+
     func testNativeMacAppRegistersWhiteNoiseURLScheme() throws {
         let urlTypes = try readInfoPlistValue(forKey: "CFBundleURLTypes") as? [[String: Any]]
         let schemes = urlTypes?

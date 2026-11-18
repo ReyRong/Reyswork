@@ -29,14 +29,19 @@ enum MainWindowDockPresenter {
 
 final class HideInsteadOfCloseWindowDelegate: NSObject, NSWindowDelegate {
     private let dockVisibility: DockVisibilityControlling
+    private let windows: (() -> [NSWindow])?
 
-    init(dockVisibility: DockVisibilityControlling = AppDockVisibilityController()) {
+    init(dockVisibility: DockVisibilityControlling = AppDockVisibilityController(), windows: (() -> [NSWindow])? = nil) {
         self.dockVisibility = dockVisibility
+        self.windows = windows
     }
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         sender.orderOut(nil)
-        dockVisibility.hideDockIcon()
+        let otherWindows = windows?() ?? NSApplication.shared.windows
+        if !otherWindows.contains(where: { $0 !== sender && $0.isVisible && $0.styleMask.contains(.titled) }) {
+            dockVisibility.hideDockIcon()
+        }
         return false
     }
 }
@@ -175,5 +180,20 @@ private extension NSWindow {
             y: center.y - targetFrame.height / 2
         )
         setFrame(targetFrame, display: true)
+    }
+}
+
+
+extension Scene {
+    func opensOnlyWhenRequested() -> some Scene {
+        let scene = handlesExternalEvents(matching: [])
+        // SceneBuilder 不支持 else；两条分支使用同一公开的场景擦除类型。
+        if #available(macOS 15.0, *) {
+            return SceneBuilder.buildOptional(SceneBuilder.buildLimitedAvailability(
+                scene.defaultLaunchBehavior(.suppressed).restorationBehavior(.disabled)
+            ))
+        } else {
+            return SceneBuilder.buildOptional(SceneBuilder.buildLimitedAvailability(scene))
+        }
     }
 }
