@@ -1,0 +1,15 @@
+# 白噪音 App 图标方案 v1
+
+日期：2026-11-18。状态：用户已认可造型方向，多尺寸 PNG 候选资源已导出，已接入工程 AppIcon.icns。
+
+方向：深蓝/靛蓝玻璃底，淡紫磨砂玻璃月牙，下沿融入两条声纹。无文字、星星或徽标，沿用本项目界面的安静色调。
+
+使用内置 image_gen 生成，并做了一次仅针对透明边缘的清理尝试。已完成原生绘制的浅色/深色背景 16、32、64、128、192 像素预览，月牙在小尺寸下保留，16 像素声纹细节减弱。此前预览可见的外沿杂点经透明度检查：不透明主体边界向外扩 4 像素之外，最高 alpha 为 2/255；实际合成预览未见明显杂边。已导出十个标准尺寸 PNG。转换失败已定位为受限执行环境问题：相同输入、相同 iconutil 命令在正常权限下成功，受限环境下报 Invalid Iconset；具体系统内部原因未知。已用更新后的生成脚本接入 Sources/SleepAidApp/Resources/AppIcon.icns，并反向解包确认十种尺寸和透明通道完整。实际 Dock 尚未检查。未构建或安装 App；实际 Dock 尚未验证。提交由用户明确授权，推送未授权。
+
+## 生成提示词
+
+Use case: logo-brand. Asset type: a single finished macOS app icon design, square 1024 by 1024, for a Chinese white noise app used for sleep and focus. Produce ONE icon only, straight-on orthographic view, not an icon sheet or mockup. Design a refined, original, beautifully restrained icon that belongs beside modern macOS Liquid Glass apps. One dark midnight blue / muted indigo squircle tile, filling about 90 percent of the canvas, centered with fully transparent outside corners and margins. Tile has subtle glass thickness and soft refracted rim highlights, a quiet navy-to-lavender internal gradient, no neon. Its central emblem is a large, bold, sculptural frosted lavender glass crescent moon, whose lower tip flows naturally into two short soft soundwave ripples, forming one integrated flowing mark rather than separate moon and music symbols. The emblem is simple, calm, elegant and readable at 32 pixels: substantial strokes, generous internal negative space, very few details, central mark occupies around 62 percent of tile. Soft pearly pale-lilac highlights on upper-left bevels and gently translucent violet-blue edges; believable layered glass, polished but not shiny chrome or metallic. Keep bright detail concentrated on emblem and rim while maintaining strong silhouette against the dark tile. Sophisticated premium native desktop utility, restful and precise, no toy or emoji look. No text, no letters, no numbers, no zzz, no stars, no sparkles, no badge, no border outside the icon, no presentation background, no extra symbols, no camera perspective, no drop shadow cast onto an opaque backdrop. Genuine alpha transparency outside the tile; do not draw checkerboard.
+
+## 边缘清理提示词
+
+Precise cleanup edit of this ONE macOS app icon. Preserve its exact crescent-and-soundwave emblem, its scale and placement, its midnight-blue/lavender colors, and all main interior glass shading. Change only the outer silhouette quality: remove ALL stray white fragments, blue/magenta pixels, rough halo, and speckles outside the rounded square tile, especially above the top edge and around the sides and bottom. The icon must have a beautifully smooth, clean, evenly antialiased squircle outer boundary suitable for a professional macOS .icns. Outside this single smooth rounded tile, every pixel should be genuinely transparent with no debris, no background pattern, no rim remnants, and no shadow. Keep all glass highlights strictly inside the tile boundary. Very clean production asset, one icon only, orthographic front view, no text. Do not redraw or redesign the interior emblem.
